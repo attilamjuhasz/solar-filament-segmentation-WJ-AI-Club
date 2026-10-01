@@ -1,0 +1,14 @@
+postprocess:
+  high_threshold: 0.55
+  low_threshold: 0.30
+  center_threshold: 0.35
+  min_area: 16
+  watershed:
+    lambda_boundary: 0.50
+    lambda_distance: 0.10
+  gap_repair:
+    max_gap_pixels: 4
+    max_angle_degrees: 20
+  rle_encoding:
+    canvas_shape: [2048, 2048]
+    quoting: "QUOTE_NONE"

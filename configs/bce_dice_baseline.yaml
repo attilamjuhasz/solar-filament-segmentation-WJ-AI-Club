@@ -1,0 +1,27 @@
+seed: 2026
+
+model:
+  name: "resnet34_unet"
+  encoder: "resnet34"
+  in_channels: 3
+  classes: 1
+
+data:
+  native_size: [2048, 2048]
+  training_size: [512, 512]
+  evaluation_size: [2048, 2048]
+
+loss:
+  type: "bce_dice"
+  bce_weight: 0.50
+  dice_weight: 0.50
+  cldice_weight: 0.0
+  boundary_weight: 0.0
+  center_weight: 0.0
+  offset_weight: 0.0
+
+training:
+  epochs: 10
+  batch_size: 4
+  lr: 0.0003
+  weight_decay: 0.0001

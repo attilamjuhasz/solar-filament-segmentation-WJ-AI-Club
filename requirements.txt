@@ -1,0 +1,13 @@
+# Official RunPod template base: runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04
+# Target execution stack: Python 3.11 / Python 3.12, PyTorch 2.6.0+cu124, CUDA 12.4
+torch==2.6.0
+torchvision==0.21.0
+numpy>=2.0.0
+pycocotools>=2.0.8
+pyyaml>=6.0.2
+scipy>=1.15.0
+pandas>=2.2.0
+scikit-learn>=1.5.0
+scikit-image>=0.24.0
+Pillow>=10.4.0
+pytest>=8.0.0

@@ -1,0 +1,25 @@
+# Local Python state
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Downloaded competition data and trained model weights
+/data/
+/checkpoints/
+*.pt
+*.pth
+*.ckpt
+
+# Training, evaluation, and inference outputs
+/artifacts/
+*.tar.gz
+*.zip
+/submission.csv
+/submission.manifest.json
+
+# Local environment files
+.env
+.env.*
+!.env.example

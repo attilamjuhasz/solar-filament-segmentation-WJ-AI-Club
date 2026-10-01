@@ -1,0 +1,41 @@
+seed: 2026
+
+model:
+  name: "convnext_large_detail_unet"
+  encoder: "convnext_large.fb_in22k_ft_in1k_384"
+  decoder_channels: [512, 256, 128, 64, 32]
+  detail_channels: [32, 64]
+  heads:
+    foreground: 1
+    boundary: 1
+    center: 1
+    offset: 2
+
+data:
+  native_size: [2048, 2048]
+  patch_size: 768
+  stride: 512
+  global_size: 1024
+  min_area: 16
+  num_workers: 4
+
+loss:
+  alpha_bce: 0.35
+  beta_dice: 0.45
+  gamma_cldice: 0.20
+  weight_boundary: 0.10
+  weight_center: 0.05
+  weight_offset: 0.05
+  cldice_iters: 20
+
+training:
+  epochs: 60
+  effective_batch_size: 16
+  encoder_lr: 0.00003
+  decoder_lr: 0.0003
+  weight_decay: 0.01
+  warmup_epochs: 5
+  schedule: "cosine"
+  min_lr: 0.000001
+  grad_clip_norm: 1.0
+  ema_decay: 0.999

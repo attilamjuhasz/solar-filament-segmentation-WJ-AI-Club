@@ -1,0 +1,37 @@
+seed: 2026
+
+model:
+  name: "resnet34_unet"
+  encoder: "resnet34"
+  in_channels: 3
+  pretrained: true
+  classes: 1
+
+data:
+  native_size: [2048, 2048]
+  training_size: [512, 512]
+  evaluation_size: [2048, 2048]
+  norm_mode: "imagenet"
+  fg_crop_prob: 0.70
+
+loss:
+  type: "compound_topology"
+  bce_weight: 1.0
+  dice_weight: 1.0
+  cldice_weight: 0.0
+  boundary_weight: 0.0
+  center_weight: 0.0
+  offset_weight: 0.0
+
+postprocess:
+  method: "connected_components"
+  high_threshold: 0.85
+  low_threshold: 0.60
+  min_area: 400
+  max_instances: 12
+
+training:
+  epochs: 8
+  batch_size: 2
+  lr: 0.0005
+  weight_decay: 0.0001
