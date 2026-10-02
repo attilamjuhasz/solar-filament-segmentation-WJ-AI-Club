@@ -227,6 +227,7 @@ def s2_loss(mask_logits, q_logits, y, meta, wq, y_all=None, rmeta=None):
             iou_r = it_r / (pa[:, None] + areas - it_r).clamp(min=1)
             contrib = iou_r * ((iou_r > 0.5) & (areas > 0)).float() * valid
             q = contrib.sum(1) / valid.sum(1).clamp(min=1)
+        q = q.clamp(max=1.0)  # S-scale area can exceed the native area by ~1% -> IoU proxy slightly > 1
     lq = F.binary_cross_entropy_with_logits(q_logits[:, 0], q)
     return bce + dice + wq * lq, q.mean().item()
 
