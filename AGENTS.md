@@ -67,12 +67,30 @@ Remaining error anatomy (v2 on val):
   - clDice and boundary losses give ≈0 here.
 - Yardstick on fold 0: +0.01 PQ ≈ 38 recovered FNs, or 70 removed FPs, or 25 fixed near-miss pairs.
 
+## Score-optimizer findings, round 2 (2026-10-02; scripts in analysis/score_agent/round2/)
+- **v2 is robust, not over-tuned.** Keep it unchanged:
+  - lam peaks at .22–.23 on both halves; a marginal check confirms lam = PQ/2;
+  - a_min 50–200 and own_frac .6–.9 are flat.
+- **Near-misses are annotator ambiguity.** On those filaments the other annotator's drawing overlaps the GT at median IoU .37, against .59 on TPs.
+  - Every shape fix failed on both halves: thresholds .4–.65 are flat; geodesic growth gives −.015 to −.04; union with the S1 blob −.016.
+  - grow=1 is **−.05** on our masks, and erosion −.027. **Skip all shape work.**
+- **The headroom is the keep/reject scorer.** Perfect keep/reject on the existing candidates reaches .538.
+  - Raising the scorer's Spearman from .63 to .72 is worth about +.007; to .79 about +.024.
+  - Rescorers with richer features (logistic, isotonic, a numpy GBM, 34 features incl. shape/context/site/year) do **not** beat q×mean_p, so the ranking signal has to come from better training.
+  - 29% of the single-reading q-target variance is annotator noise. That motivates `--q-avg`.
+- **The val→LB gap is not our pipeline.**
+  - Test inputs match val (KS p ≥ .25 on 13 statistics).
+  - Reweighting val to the test year/site/annotator mix changes ≤ .002.
+  - About .06 of the gap is unexplained on our side: likely the test annotator pool, plus LB noise (SE ≈ .016 on ~90 images).
+- Ensembling S2 epochs 4 and 8 hurts. Adding S1-only instances where S2 has no candidate is ±0.
+
 ## Experiment queue (scripts/exp/, logs in runs/*.out)
 | Id | What | Status |
 |---|---|---|
-| E1 | S2 retrained on TTA proposals (`s2_r34_tta`) | running |
-| E2 | S1 40 epochs (`s1_r34_f0_e40`) + existing S2s on its proposals | queued (Q1) |
-| E3 | S2 with q label averaged over all readings (`--q-avg`, 16 ep, `s2_r34_qavg`) | queued (Q1) |
+| E1 | S2 retrained on TTA proposals (`s2_r34_tta`) | **rejected**: .4510 vs .4564 (−.005 ± .002, worse on both halves; its q is miscalibrated at the margin) |
+| E3a | S2 with ONLY the q target averaged over readings (`--q-avg`, plain props, 8 ep, `s2_r34_qavg_plain`) | queued (Q2) |
+| SEED | v2 S2 recipe with seed 1 (`s2_r34_seed1`): run-to-run noise baseline + 2-seed q ensemble | queued (Q2) |
+| E2 | S1 40 epochs (`s1_r34_f0_e40`), then existing S2s scored on its proposals | queued (Q2) |
 | E4 | S1 fine-tune at 1536 from the best S1 | planned |
 | E5 | 5-fold S1 ensemble + OOF (lets lam be re-derived on 707 stems) | planned |
 | E6 | OOF stacker (gradient boosting on candidate features) | planned |
