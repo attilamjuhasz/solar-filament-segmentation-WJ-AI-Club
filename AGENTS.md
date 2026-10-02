@@ -2,6 +2,26 @@
 
 Competition facts and environment notes are in `CLAUDE.md`. This file covers the agent team, the current pipeline state, and the improvement loop.
 
+## ⏸ PAUSED (2026-10-02 19:15) — how to resume
+The user paused everything to free the GPU. Nothing is running. State:
+- **Best submission is unchanged:** `submissions/two_stage_v2.csv` (val 0.456, LB 0.37).
+- E1 finished and was rejected (val 0.451). Its outputs are in `runs/s2_r34_tta/`.
+- Queue Q2 was stopped during E3a epoch 1. Not resumable mid-epoch (no optimizer state), so it restarts from scratch.
+  The partial run was moved to `runs/_partial_s2_r34_qavg_plain_ep1/` (safe to delete), and its log to `runs/q2_partial.out`.
+- 1536 caches for E4 are built (`data/cache/img1536`, `fg1536`, `un1536`).
+- `--s1-ch` (S2 with S1 probability input channels) is committed and verified for coordinate exactness.
+  Its code review and the planner's scorer-research round were interrupted. Re-run both on resume.
+
+**Resume** (about 6 h of GPU: E3a ~1 h, seed baseline ~1 h, E2 S1-40ep ~4.5 h):
+```
+nohup bash scripts/exp/q2_after_e1.sh > runs/q2.out 2>&1 &
+```
+Then in Claude: "read AGENTS.md, resume the paused loop". Claude should:
+- re-arm a watcher on `runs/q2.out`;
+- re-launch the code-reviewer on commit 2bc02c7 (`--s1-ch`) and the kaggle-planner on "better keep/reject scorer";
+- restart the `/loop` from the "Improvement loop" section.
+After Q2: train `--s1-ch` S2 on the better S1 (E2 if it wins), then E4 (1536 fine-tune).
+
 ## The agent team (`.claude/agents/`)
 | Agent | Use it when | Writes code? |
 |---|---|---|
