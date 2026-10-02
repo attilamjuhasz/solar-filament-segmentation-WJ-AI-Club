@@ -1,7 +1,8 @@
 """Stage 2: per-blob refiner at native resolution.
 
 For every blob proposal: square window around it (native px), resampled to S x S, input =
-[intensity, limb-flattened contrast, r/R, prior blob mask] -> UNet-ResNet34 predicts
+[intensity, limb-flattened contrast, r/R, prior blob mask] (+ optional S1 precise/union probability
+crops with --s1-ch) -> UNet-ResNet34 predicts
   * the exact mask of the filament the blob belongs to
   * q = P(predicted mask matches an annotator's filament at IoU > .5)   (the keep/reject score)
 
@@ -33,8 +34,8 @@ MAX_READ = 3  # max annotator readings per stem
 MIN_SIDE, MAX_SIDE = 128, 1536
 
 
-def build_model(pretrained=True):
-    return smp.Unet("resnet34", encoder_weights="imagenet" if pretrained else None, in_channels=4, classes=1,
+def build_model(pretrained=True, in_ch=4):
+    return smp.Unet("resnet34", encoder_weights="imagenet" if pretrained else None, in_channels=in_ch, classes=1,
                     aux_params=dict(classes=1, pooling="avg", dropout=0.2))
 
 
@@ -67,12 +68,33 @@ def resize_to(a, n, area=True):
     return cv2.resize(a, (n, n), interpolation=interp)
 
 
-def make_input(img2048, stem, prior_full, x0, y0, side):
+def s1_crop(s1p, x0, y0, side):
+    """S1 probability maps (C, 1024, 1024) uint8 -> (C, S, S) float in [0, 1] for the native window.
+
+    Exact pixel-centre mapping: S-pixel j sits at native x0 + (j + .5) * step - .5, i.e. at
+    1024-coordinate (x0 + (j + .5) * step) / 2 - .5 (bilinear, zero outside the frame).
+    """
+    step = side / S
+    M = np.array([[step / 2, 0, (x0 + 0.5 * step) / 2 - 0.5],
+                  [0, step / 2, (y0 + 0.5 * step) / 2 - 0.5]], np.float64)
+    out = [cv2.warpAffine(np.ascontiguousarray(c), M, (S, S), flags=cv2.INTER_LINEAR | cv2.WARP_INVERSE_MAP,
+                          borderMode=cv2.BORDER_CONSTANT, borderValue=0) for c in s1p]
+    return np.stack(out).astype(np.float32) / 255.0
+
+
+def make_input(img2048, stem, prior_full, x0, y0, side, s1p=None):
     crop = crop_pad(img2048, x0, y0, side)
     step = side / S
     planes = make_planes(resize_to(crop, S), disk_info(stem), x0, y0, step)
     pr = resize_to(crop_pad(prior_full, x0, y0, side).astype(np.float32), S)
-    return np.concatenate([planes, pr[None]], 0).astype(np.float32)
+    parts = [planes, pr[None]]
+    if s1p is not None:
+        parts.append(s1_crop(s1p, x0, y0, side))
+    return np.concatenate(parts, 0).astype(np.float32)
+
+
+def load_s1(s1_dir, stem):
+    return np.load(os.path.join(s1_dir, stem + ".npy"), mmap_mode="r") if s1_dir else None
 
 
 def pick_target(prior, inst, areas):
@@ -125,8 +147,8 @@ def corrupt(m, inst, lab, rng):
 
 
 class S2Train(Dataset):
-    def __init__(self, stems, readings, props_dir, n_samples, p_prop=0.6, seed=0, q_avg=False):
-        self.stems, self.readings, self.props_dir = list(stems), readings, props_dir
+    def __init__(self, stems, readings, props_dir, n_samples, p_prop=0.6, seed=0, q_avg=False, s1_dir=None):
+        self.stems, self.readings, self.props_dir, self.s1_dir = list(stems), readings, props_dir, s1_dir
         self.n, self.p_prop, self.seed, self.q_avg = n_samples, p_prop, seed, q_avg
         w = np.array([len(readings[s]) for s in self.stems], np.float64)
         self.p_stem = w / w.sum()
@@ -165,7 +187,7 @@ class S2Train(Dataset):
         box = (xs.min(), ys.min(), xs.max() - xs.min() + 1, ys.max() - ys.min() + 1)
         x0, y0, side = window(box, rng)
         img = np.load(os.path.join(CACHE, "img2048", stem + ".npy"), mmap_mode="r")
-        x = make_input(img, stem, prior, x0, y0, side)
+        x = make_input(img, stem, prior, x0, y0, side, load_s1(self.s1_dir, stem))
         tgt = (inst == t) if t else np.zeros_like(prior)
         y = resize_to(crop_pad(tgt, x0, y0, side).astype(np.float32), S)[None]
         gt_area = float(areas[t]) if t else 0.0
@@ -237,7 +259,7 @@ FLIPS = [(), (3,), (2,), (2, 3)]
 
 
 @torch.no_grad()
-def refine(model, stem, props, dev, tta=True, bs=32, thr=0.3):
+def refine(model, stem, props, dev, tta=True, bs=32, thr=0.3, s1_dir=None):
     """-> list of candidates {x, y, soft, q, level, idx, ...}.
 
     `soft` is the uint8 (0..255) native-res probability crop at (x, y), zeroed outside the
@@ -248,13 +270,14 @@ def refine(model, stem, props, dev, tta=True, bs=32, thr=0.3):
     if not props:
         return []
     img = np.load(os.path.join(CACHE, "img2048", stem + ".npy"), mmap_mode="r")
+    s1p = load_s1(s1_dir, stem)
     wins, xs, priors = [], [], []
     for d in props:
         prior = mu.decode(d["rle"]).astype(bool)
         x0, y0, side = window(d["box"])
         wins.append((x0, y0, side))
         priors.append(prior)
-        xs.append(make_input(img, stem, prior, x0, y0, side))
+        xs.append(make_input(img, stem, prior, x0, y0, side, s1p))
     probs, qs = [], []
     for i in range(0, len(xs), bs):
         xb = torch.from_numpy(np.stack(xs[i:i + bs])).to(dev)
@@ -306,10 +329,12 @@ def train(args):
     os.makedirs(out_dir, exist_ok=True)
     tr, va, readings = split(args.val_fold)
     props_dir = os.path.join(RUNS, args.s1, "props_" + args.props)
-    ds = S2Train(tr, readings, props_dir, args.samples, p_prop=args.p_prop, seed=args.seed, q_avg=args.q_avg)
+    s1_dir = os.path.join(RUNS, args.s1, args.s1_probs) if args.s1_ch else None
+    ds = S2Train(tr, readings, props_dir, args.samples, p_prop=args.p_prop, seed=args.seed, q_avg=args.q_avg,
+                 s1_dir=s1_dir)
     extra = dict(persistent_workers=True, prefetch_factor=4) if args.workers > 0 else {}
     dl = DataLoader(ds, batch_size=args.bs, num_workers=args.workers, drop_last=True, **extra)
-    model = build_model().to(dev)
+    model = build_model(in_ch=6 if args.s1_ch else 4).to(dev)
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     total = args.epochs * len(dl)
     warm = min(300, total // 10)
@@ -344,8 +369,10 @@ def train(args):
 
 def predict(args):
     dev = device()
-    model = build_model(pretrained=False).to(dev)
+    s1_ch = json.load(open(os.path.join(RUNS, args.name, "args.json"))).get("s1_ch", False)
+    model = build_model(pretrained=False, in_ch=6 if s1_ch else 4).to(dev)
     model.load_state_dict(torch.load(os.path.join(RUNS, args.name, args.ckpt), map_location=dev))
+    s1_dir = os.path.join(RUNS, args.s1, args.s1_probs) if s1_ch else None
     props_dir = os.path.join(RUNS, args.s1, "props_" + args.props)
     tr, va, _ = split(args.val_fold)
     test = sorted(f[:-4] for f in os.listdir(os.path.join(CACHE, "img1024"))
@@ -356,7 +383,8 @@ def predict(args):
     t0 = time.time()
     for i, s in enumerate(stems):
         props = pickle.load(open(os.path.join(props_dir, s + ".pkl"), "rb"))
-        pickle.dump(refine(model, s, props, dev, tta=not args.no_tta), open(os.path.join(odir, s + ".pkl"), "wb"))
+        pickle.dump(refine(model, s, props, dev, tta=not args.no_tta, s1_dir=s1_dir),
+                    open(os.path.join(odir, s + ".pkl"), "wb"))
         if i % 20 == 0:
             print(f"{i}/{len(stems)} {time.time() - t0:.0f}s", flush=True)
     print("done", odir)
@@ -380,5 +408,7 @@ if __name__ == "__main__":
     ap.add_argument("--no-tta", action="store_true")
     ap.add_argument("--q-avg", action="store_true", help="q label averaged over all annotator readings")
     ap.add_argument("--tag", default="", help="suffix for the candidates folder (e.g. which S1 made the proposals)")
+    ap.add_argument("--s1-ch", action="store_true", help="add S1 precise/union probability crops as input channels")
+    ap.add_argument("--s1-probs", default="probs_plain", help="S1 probability folder used for --s1-ch inputs")
     a = ap.parse_args()
     predict(a) if a.predict else train(a)
