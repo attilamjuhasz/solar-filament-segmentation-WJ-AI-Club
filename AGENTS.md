@@ -49,6 +49,36 @@ Remaining error anatomy (v2 on val):
 - Small GT (<400 px) is break-even.
 - S2 masks ≈ S1 masks (pair IoU .88). The S2 gain comes from keep/reject, not shape.
 
+## Research findings (2026-10-02, kaggle-planner)
+- **The 0.55 leaderboard cluster is leaked, not modelled.** 54 teams sit at exactly 0.55. A public notebook ("Solar Filament Unet
+  Segmentation | 0.55+") embeds a CSV byte-identical to hdjojo/solar-filament-seg-inference, a YOLOv8l-seg @2048 whose
+  private weights were probably trained on the forbidden public MAGFiLO 1.0 labels (they include test GT).
+  **Never use those notebooks or their outputs.** The honest frontier is ≈0.40–0.41 LB; we are at 0.37.
+- Honest competitor numbers:
+  - Anon Tokyo: ConvNeXt-T UNet 1024→1536 fine-tune + native crop refiner, 5-fold OOF 0.443 → LB 0.38.
+  - YOLO-seg replications: LB 0.35–0.36.
+- Our val→LB gap (0.086) is normal for the field (0.05–0.09). Val and test candidate statistics match, and fold 0 is not easier.
+- **S1 is under-trained.** It scores the same on train and val stems (0.434 vs 0.427) and val PQ was still rising at epoch 16.
+- Measured negatives elsewhere (don't repeat):
+  - native 2048 is worse than 1536;
+  - dilating masks hurts (−0.02 at 1 px);
+  - pseudo-labelling the test set;
+  - Mask R-CNN / Mask2Former;
+  - clDice and boundary losses give ≈0 here.
+- Yardstick on fold 0: +0.01 PQ ≈ 38 recovered FNs, or 70 removed FPs, or 25 fixed near-miss pairs.
+
+## Experiment queue (scripts/exp/, logs in runs/*.out)
+| Id | What | Status |
+|---|---|---|
+| E1 | S2 retrained on TTA proposals (`s2_r34_tta`) | running |
+| E2 | S1 40 epochs (`s1_r34_f0_e40`) + existing S2s on its proposals | queued (Q1) |
+| E3 | S2 with q label averaged over all readings (`--q-avg`, 16 ep, `s2_r34_qavg`) | queued (Q1) |
+| E4 | S1 fine-tune at 1536 from the best S1 | planned |
+| E5 | 5-fold S1 ensemble + OOF (lets lam be re-derived on 707 stems) | planned |
+| E6 | OOF stacker (gradient boosting on candidate features) | planned |
+| E7 | all-data final retrain | planned |
+| E8/E9 | spine aux head split/merge; temporal-neighbour prior | optional |
+
 ## Next steps (ranked by expected gain)
 1. Retrain S2 on TTA or out-of-fold S1 proposals (it was trained on plain-inference proposals and run on TTA ones). Targets the 216 low-q misses.
 2. Ensemble S1 over folds or seeds (other teams saw +0.02 LB from a 5-fold probability ensemble).

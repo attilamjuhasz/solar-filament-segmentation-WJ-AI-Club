@@ -29,6 +29,7 @@ import segmentation_models_pytorch as smp  # noqa: E402
 from common import CACHE, RUNS, device, disk_info, load_inst, make_planes  # noqa: E402
 
 S = 256
+MAX_READ = 3  # max annotator readings per stem
 MIN_SIDE, MAX_SIDE = 128, 1536
 
 
@@ -124,9 +125,9 @@ def corrupt(m, inst, lab, rng):
 
 
 class S2Train(Dataset):
-    def __init__(self, stems, readings, props_dir, n_samples, p_prop=0.6, seed=0):
+    def __init__(self, stems, readings, props_dir, n_samples, p_prop=0.6, seed=0, q_avg=False):
         self.stems, self.readings, self.props_dir = list(stems), readings, props_dir
-        self.n, self.p_prop, self.seed = n_samples, p_prop, seed
+        self.n, self.p_prop, self.seed, self.q_avg = n_samples, p_prop, seed, q_avg
         w = np.array([len(readings[s]) for s in self.stems], np.float64)
         self.p_stem = w / w.sum()
 
@@ -153,7 +154,11 @@ class S2Train(Dataset):
                 prior = corrupt(src == lab, src, lab, rng)
             if prior.sum() >= 20:
                 break
-        inst = load_inst(rds[rng.integers(len(rds))])
+        r_mask = int(rng.integers(len(rds)))
+        insts = [load_inst(r) for r in rds] if self.q_avg else [load_inst(rds[r_mask])]
+        if not self.q_avg:
+            r_mask = 0
+        inst = insts[r_mask]
         areas = np.bincount(inst.ravel())
         t = pick_target(prior, inst, areas)
         ys, xs = np.nonzero(prior)
@@ -164,23 +169,43 @@ class S2Train(Dataset):
         tgt = (inst == t) if t else np.zeros_like(prior)
         y = resize_to(crop_pad(tgt, x0, y0, side).astype(np.float32), S)[None]
         gt_area = float(areas[t]) if t else 0.0
+        if self.q_avg:  # every reading's target, so the q label can average over annotators
+            y_all = np.zeros((MAX_READ, S, S), np.float32)
+            r_areas = np.zeros(MAX_READ, np.float32)
+            r_valid = np.zeros(MAX_READ, np.float32)
+            for j, ins in enumerate(insts[:MAX_READ]):
+                ar = areas if j == r_mask else np.bincount(ins.ravel())
+                tj = t if j == r_mask else pick_target(prior, ins, ar)
+                r_valid[j] = 1.0
+                if tj:
+                    y_all[j] = resize_to(crop_pad(ins == tj, x0, y0, side).astype(np.float32), S)
+                    r_areas[j] = float(ar[tj])
 
         g = rng.uniform(0.9, 1.1)
         x[:2] = x[:2] * g + rng.uniform(-0.1, 0.1)
         if rng.random() < 0.3:
             x[:2] += rng.normal(0, 0.05, x[:2].shape).astype(np.float32)
         k = int(rng.integers(4))
+        flip = rng.random() < 0.5
         x, y = np.rot90(x, k, (1, 2)), np.rot90(y, k, (1, 2))
-        if rng.random() < 0.5:
+        if flip:
             x, y = x[:, :, ::-1], y[:, :, ::-1]
         meta = torch.tensor([gt_area, (side / S) ** 2], dtype=torch.float32)
-        return torch.from_numpy(np.ascontiguousarray(x)), torch.from_numpy(np.ascontiguousarray(y)), meta
+        out = [torch.from_numpy(np.ascontiguousarray(x)), torch.from_numpy(np.ascontiguousarray(y)), meta]
+        if self.q_avg:
+            y_all = np.rot90(y_all, k, (1, 2))
+            if flip:
+                y_all = y_all[:, :, ::-1]
+            out += [torch.from_numpy(np.ascontiguousarray(y_all)), torch.from_numpy(np.stack([r_areas, r_valid]))]
+        return tuple(out)
 
 
-def s2_loss(mask_logits, q_logits, y, meta, wq):
+def s2_loss(mask_logits, q_logits, y, meta, wq, y_all=None, rmeta=None):
     """Mask loss only on samples whose blob belongs to a GT filament (existence is the q head's job,
     otherwise the mask shrinks toward the annotators' intersection). q head: soft target
-    IoU * 1[IoU > .5] so sigmoid(q) estimates the blob's expected PQ numerator contribution."""
+    IoU * 1[IoU > .5] so sigmoid(q) estimates the blob's expected PQ numerator contribution.
+    With y_all/rmeta (--q-avg) that target is averaged over every annotator reading of the stem,
+    which is exactly the quantity pooled PQ rewards, instead of one random reading."""
     has = (y.sum((1, 2, 3)) > 0).float()
     nh = has.sum().clamp(min=1)
     bce = (F.binary_cross_entropy_with_logits(mask_logits, y, reduction="none").mean((1, 2, 3)) * has).sum() / nh
@@ -193,8 +218,15 @@ def s2_loss(mask_logits, q_logits, y, meta, wq):
         tgt = (y > 0.5).float()
         it = (hard * tgt).sum((1, 2, 3)) * meta[:, 1]
         pa = hard.sum((1, 2, 3)) * meta[:, 1]
-        iou = it / (pa + meta[:, 0] - it).clamp(min=1)
-        q = iou * ((iou > 0.5) & (meta[:, 0] > 0)).float()
+        if y_all is None:
+            iou = it / (pa + meta[:, 0] - it).clamp(min=1)
+            q = iou * ((iou > 0.5) & (meta[:, 0] > 0)).float()
+        else:
+            areas, valid = rmeta[:, 0], rmeta[:, 1]  # (B, R)
+            it_r = (hard * (y_all > 0.5).float()).sum((2, 3)) * meta[:, 1:2]
+            iou_r = it_r / (pa[:, None] + areas - it_r).clamp(min=1)
+            contrib = iou_r * ((iou_r > 0.5) & (areas > 0)).float() * valid
+            q = contrib.sum(1) / valid.sum(1).clamp(min=1)
     lq = F.binary_cross_entropy_with_logits(q_logits[:, 0], q)
     return bce + dice + wq * lq, q.mean().item()
 
@@ -273,7 +305,7 @@ def train(args):
     os.makedirs(out_dir, exist_ok=True)
     tr, va, readings = split(args.val_fold)
     props_dir = os.path.join(RUNS, args.s1, "props_" + args.props)
-    ds = S2Train(tr, readings, props_dir, args.samples, p_prop=args.p_prop, seed=args.seed)
+    ds = S2Train(tr, readings, props_dir, args.samples, p_prop=args.p_prop, seed=args.seed, q_avg=args.q_avg)
     extra = dict(persistent_workers=True, prefetch_factor=4) if args.workers > 0 else {}
     dl = DataLoader(ds, batch_size=args.bs, num_workers=args.workers, drop_last=True, **extra)
     model = build_model().to(dev)
@@ -288,11 +320,12 @@ def train(args):
     for ep in range(1, args.epochs + 1):
         model.train()
         t0, run, runq = time.time(), 0.0, 0.0
-        for x, y, meta in dl:
-            x, y, meta = x.to(dev), y.to(dev), meta.to(dev)
+        for batch in dl:
+            x, y, meta = (b.to(dev) for b in batch[:3])
+            extra = [b.to(dev) for b in batch[3:]]
             wq = min(1.0, step / max(1, 2 * len(dl)))
             m, q = model(x)
-            loss, qm = s2_loss(m, q, y, meta, wq)
+            loss, qm = s2_loss(m, q, y, meta, wq, *extra)
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()
@@ -317,7 +350,7 @@ def predict(args):
     test = sorted(f[:-4] for f in os.listdir(os.path.join(CACHE, "img1024"))
                   if f.endswith(".npy") and f[:-4] not in set(tr) | set(va))
     stems = {"val": va, "test": test}[args.predict]
-    odir = os.path.join(RUNS, args.name, f"cands_{args.predict}_{args.props}_{args.ckpt[:-3]}")
+    odir = os.path.join(RUNS, args.name, f"cands_{args.predict}_{args.props}_{args.ckpt[:-3]}{args.tag}")
     os.makedirs(odir, exist_ok=True)
     t0 = time.time()
     for i, s in enumerate(stems):
@@ -344,5 +377,7 @@ if __name__ == "__main__":
     ap.add_argument("--predict", default=None)
     ap.add_argument("--ckpt", default="last.pt")
     ap.add_argument("--no-tta", action="store_true")
+    ap.add_argument("--q-avg", action="store_true", help="q label averaged over all annotator readings")
+    ap.add_argument("--tag", default="", help="suffix for the candidates folder (e.g. which S1 made the proposals)")
     a = ap.parse_args()
     predict(a) if a.predict else train(a)

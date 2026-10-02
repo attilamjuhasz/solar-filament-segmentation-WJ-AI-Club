@@ -21,6 +21,7 @@ def main():
     ap.add_argument("--probs", default="probs_tta")
     ap.add_argument("--val-fold", type=int, default=0)
     ap.add_argument("--submit", default=None)
+    ap.add_argument("--eval", default=None, help="score fixed params (json) on val instead of tuning")
     a = ap.parse_args()
     _, va, _ = split(a.val_fold)
     pdir = os.path.join(RUNS, a.run, a.probs)
@@ -28,6 +29,11 @@ def main():
         return submit(pdir, a.submit)
     probs = {s: load_probs(os.path.join(pdir, s + ".npy")) for s in va}
     gt = FastGT(va)
+    if a.eval:
+        P = json.load(open(a.eval))
+        P = {k: P[k] for k in ("t_hi", "t_lo", "gap", "min_area", "head")}
+        print("EVAL", gt.pq({s: postprocess_s1(probs[s], s, **P) for s in va}), P)
+        return
 
     def run(P):
         return gt.pq({s: postprocess_s1(probs[s], s, **P) for s in va})
