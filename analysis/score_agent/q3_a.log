@@ -1,0 +1,15 @@
+setup 30s
+
+### M0 current assemble (coordinator grid)  [8s]
+  cross-fit PQ=0.4316  (A scored w/ B-params 0.4257, B scored w/ A-params 0.4383) | in-half A 0.4292, B 0.4399
+  tuned-on-all: all 0.4336  A 0.4291  B 0.4385  tp/fp/fn=1045/505/642
+  PA={'score': 'qpu', 'thr': 0.6, 'ring': 0.0, 'rel': 0.0, 'lam': 0.4, 'lam_small': 0.2, 'small': 400, 'a_min': 400, 'own_frac': 0.8, 'levels': 'A', 'grow': 0}
+  PB={'score': 'qpu', 'thr': 0.65, 'ring': 0.0, 'rel': 0.0, 'lam': 0.35, 'lam_small': 0.2, 'small': 400, 'a_min': 400, 'own_frac': 0.8, 'levels': 'A', 'grow': 0}
+  Pall={'score': 'qm', 'thr': 0.6, 'ring': 0.0, 'rel': 0.0, 'lam': 0.4, 'lam_small': 0.2, 'small': 400, 'a_min': 400, 'own_frac': 0.8, 'levels': 'A', 'grow': 0}
+
+### M1 isotonic per-level calibrated q  [8s]
+  cross-fit PQ=0.4299  (A scored w/ B-params 0.4233, B scored w/ A-params 0.4367) | in-half A 0.4312, B 0.4447
+  tuned-on-all: all 0.4362  A 0.4282  B 0.4450  tp/fp/fn=1129/652/558
+  PA={'thr': 0.45, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  PB={'thr': 0.65, 'lam': 0.32, 'a_min': 300, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 0}
+  Pall={'thr': 0.65, 'lam': 0.22, 'a_min': 100, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 0}

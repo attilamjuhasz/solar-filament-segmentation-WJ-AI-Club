@@ -1,0 +1,17 @@
+S2 finals=1088, with an S1 instance at mask-IoU>=.5: 1013 (0.93); mean pair IoU 0.883
+  on paired objects: mean y S2 0.4457 vs S1 0.4426; S2 better 0.41, S1 better 0.35, tie 0.25
+  area ratio S1/S2 median 1.00
+  q in [0,0.4): n=66 y S2 0.234 S1 0.226
+  q in [0.4,0.5): n=256 y S2 0.328 S1 0.305
+  q in [0.5,0.55): n=230 y S2 0.400 S1 0.407
+  q in [0.55,1): n=461 y S2 0.565 S1 0.567
+  S1/S2 area ratio in [0,0.8): n=60 y S2 0.140 S1 0.095
+  S1/S2 area ratio in [0.8,1.0): n=462 y S2 0.378 S1 0.380
+  S1/S2 area ratio in [1.0,1.25): n=477 y S2 0.552 S1 0.554
+  S1/S2 area ratio in [1.25,99): n=14 y S2 0.370 S1 0.187
+S2 only (BEST)                           A=0.4275 B=0.4392 all=0.4331
+oracle: better of S1/S2 per object       A=0.4415 B=0.4521 all=0.4465
+always S1 mask when paired               A=0.4239 B=0.4322 all=0.4279
+S1 mask if S1 larger                     A=0.4252 B=0.4374 all=0.4311
+S1 mask if S1 smaller                    A=0.4261 B=0.4341 all=0.4299
+S1 mask if q<.5                          A=0.4232 B=0.4332 all=0.4280

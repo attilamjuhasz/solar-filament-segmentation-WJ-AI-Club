@@ -1,0 +1,36 @@
+setup 28s
+
+### M1s M1 + small-mask lam  [6s]
+  cross-fit PQ=0.4306  (A scored w/ B-params 0.4253, B scored w/ A-params 0.4360) | in-half A 0.4319, B 0.4442
+  tuned-on-all: all 0.4363  A 0.4316  B 0.4413  tp/fp/fn=1075/552/612
+  PA={'thr': 0.45, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 400, 'lam_small': 0.22}
+  PB={'thr': 0.65, 'lam': 0.32, 'a_min': 100, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 400, 'lam_small': 0.28}
+  Pall={'thr': 0.65, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 400, 'lam_small': 0.22}
+
+### M2 M1 + merge-vs-parts rule  [13s]
+  cross-fit PQ=0.4299  (A scored w/ B-params 0.4233, B scored w/ A-params 0.4367) | in-half A 0.4314, B 0.4447
+  tuned-on-all: all 0.4344  A 0.4269  B 0.4426  tp/fp/fn=1035/494/652
+  PA={'thr': 0.45, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0, 'parts': True}
+  PB={'thr': 0.65, 'lam': 0.32, 'a_min': 300, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 0, 'parts': True}
+  Pall={'thr': 0.55, 'lam': 0.28, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0, 'parts': True}
+
+### M5 M1 + S2/S1 soft fusion  [12s]
+  cross-fit PQ=0.4313  (A scored w/ B-params 0.4252, B scored w/ A-params 0.4375) | in-half A 0.4332, B 0.4480
+  tuned-on-all: all 0.4393  A 0.4315  B 0.4477  tp/fp/fn=1137/644/550
+  PA={'thr': 0.45, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0, 'w': 0.85}
+  PB={'thr': 0.55, 'lam': 0.32, 'a_min': 300, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 0, 'w': 0.5}
+  Pall={'thr': 0.55, 'lam': 0.22, 'a_min': 100, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 0, 'w': 0.6}
+
+### M3 S1-only instances gated by matched S2 score  [5s]
+  cross-fit PQ=0.4315  (A scored w/ B-params 0.4257, B scored w/ A-params 0.4379) | in-half A 0.4285, B 0.4424
+  tuned-on-all: all 0.4316  A 0.4260  B 0.4378  tp/fp/fn=1053/522/634
+  PA={'s1': 'best', 'levels': 'AP', 'match_iou': 0.5, 'd0': 0.0, 'lam': 0.2, 'a_min': 0, 'own_frac': 0.0}
+  PB={'s1': 'loose', 'levels': 'AP', 'match_iou': 0.5, 'd0': 0.0, 'lam': 0.22, 'a_min': 300, 'own_frac': 0.0}
+  Pall={'s1': 'best', 'levels': 'AP', 'match_iou': 0.5, 'd0': 0.0, 'lam': 0.22, 'a_min': 0, 'own_frac': 0.0}
+
+### M4 mixed pool S2 cands + S1 instances  [9s]
+  cross-fit PQ=0.4299  (A scored w/ B-params 0.4233, B scored w/ A-params 0.4367) | in-half A 0.4312, B 0.4447
+  tuned-on-all: all 0.4362  A 0.4282  B 0.4450  tp/fp/fn=1129/652/558
+  PA={'thr': 0.45, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0, 's1': 'best', 'beta': 1.0, 'match_iou': 0.5}
+  PB={'thr': 0.65, 'lam': 0.32, 'a_min': 300, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 0, 's1': 'best', 'beta': 1.0, 'match_iou': 0.5}
+  Pall={'thr': 0.65, 'lam': 0.22, 'a_min': 100, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 0, 's1': 'best', 'beta': 1.0, 'match_iou': 0.5}

@@ -1,0 +1,8 @@
+.venv/
+data/
+runs/
+*.pth
+*.pt
+__pycache__/
+submissions/
+.claude/settings.local.json

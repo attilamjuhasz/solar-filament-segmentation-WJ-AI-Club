@@ -1,0 +1,21 @@
+=== A (STRIDE=2)
+A  annotator-as-pred vs other readings, width shift -2px: PQ=0.1070 {'sq': np.float64(0.5989), 'tp': 683, 'fp': 3132, 'fn': 3145}
+A  annotator-as-pred vs other readings, width shift -1px: PQ=0.2407 {'sq': np.float64(0.6091), 'tp': 1513, 'fp': 2315, 'fn': 2315}
+A  annotator-as-pred vs other readings, width shift +0px: PQ=0.3452 {'sq': np.float64(0.6358), 'tp': 2078, 'fp': 1750, 'fn': 1750}
+A  annotator-as-pred vs other readings, width shift +1px: PQ=0.3331 {'sq': np.float64(0.6334), 'tp': 2013, 'fp': 1815, 'fn': 1815}
+A  annotator-as-pred vs other readings, width shift +2px: PQ=0.2650 {'sq': np.float64(0.6125), 'tp': 1656, 'fp': 2172, 'fn': 2172}
+A  annotator-as-pred vs other readings, width shift +3px: PQ=0.1840 {'sq': np.float64(0.6001), 'tp': 1174, 'fp': 2654, 'fn': 2654}
+=== B (STRIDE=2)
+B  consensus-of-2 vs held-out 3rd [one_other           ] PQ=0.3262 {'sq': np.float64(0.6289), 'tp': 755, 'fp': 718, 'fn': 683}
+B  consensus-of-2 vs held-out 3rd [union_cc            ] PQ=0.3351 {'sq': np.float64(0.6365), 'tp': 814, 'fp': 840, 'fn': 624}
+B  consensus-of-2 vs held-out 3rd [inter_cc            ] PQ=0.3264 {'sq': np.float64(0.642), 'tp': 701, 'fp': 619, 'fn': 737}
+B  consensus-of-2 vs held-out 3rd [union_cc_inter_dil1 ] PQ=0.3885 {'sq': np.float64(0.6604), 'tp': 798, 'fp': 477, 'fn': 640}
+=== C (STRIDE=2)
+C  [reading_vs_others] all emitted: PQ=0.3452 preds=2390
+     oracle gate on q   : best PQ=0.4186 at threshold 0.5  (rule: q*s > PQ/2 = 0.209)
+     oracle gate on q*s : best PQ=0.4186 at threshold 0.25  (rule: q*s > PQ/2 = 0.209)
+     mean q*s by pred area: <200:0.165(q=0.23,n=11) <400:0.200(q=0.32,n=188) <1000:0.322(q=0.51,n=701) <3000:0.369(q=0.58,n=991) <8000:0.388(q=0.60,n=401) <1000000000:0.443(q=0.66,n=98)
+C  [unionCC_vs_all] all emitted: PQ=0.6187 preds=1135
+     oracle gate on q   : best PQ=0.6231 at threshold 0.333  (rule: q*s > PQ/2 = 0.312)
+     oracle gate on q*s : best PQ=0.6244 at threshold 0.31  (rule: q*s > PQ/2 = 0.312)
+     mean q*s by pred area: <200:0.096(q=0.10,n=19) <400:0.461(q=0.49,n=84) <1000:0.563(q=0.66,n=263) <3000:0.625(q=0.77,n=454) <8000:0.597(q=0.75,n=238) <1000000000:0.611(q=0.77,n=77)

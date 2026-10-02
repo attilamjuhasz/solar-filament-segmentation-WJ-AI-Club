@@ -1,0 +1,5 @@
+proxy PQ=0.3887  grow1 PQ=0.3590  delta=-0.0297
+bootstrap SE (141 stems): marginal PQ 0.0132; paired delta(grow1) 0.0052
+split-half |PQ(h1)-PQ(h2)| median 0.0179
+dup-GT reading: official (0.26289722820123035, {'S': 3.1547667384147644, 'tp': 4, 'fp': 0, 'fn': 16})
+dup-GT reading: FastGT   {'S': np.float64(2.1547666846766647), 'tp': 3, 'fp': 0, 'fn': 17} (pair IoU 0.724)

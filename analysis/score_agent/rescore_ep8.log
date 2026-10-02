@@ -1,0 +1,51 @@
+setup 26s
+held-out Spearman(score, realized y)  [fit A -> eval B | fit B -> eval A]
+  q               0.629 | 0.613
+  q+level         0.639 | 0.621
+  q+level+S1      0.643 | 0.625
+  q+level+S1+S2   0.641 | 0.624
+  +agree          0.641 | 0.623
+  all             0.649 | 0.630
+standardized coefficients (all features, fit on all val):
+  mean_p       +0.659
+  q            +0.610
+  peak_u       -0.358
+  mprob        +0.171
+  contrast     -0.165
+  s1u_mean     +0.145
+  s1p_mean     -0.139
+  max_q_other  +0.129
+  width        -0.120
+  n_cands_stem -0.108
+  lvA          +0.107
+  s1p_p90      -0.099
+  lvB          -0.093
+  rR           -0.083
+  p95          -0.079
+  lvP          -0.058
+  elong        +0.043
+  log_area     +0.040
+  logit_q      +0.034
+  lvC          -0.030
+  n_agree      -0.028
+
+### M6 rescorer [q+level+S1+S2]  [8s]
+  cross-fit PQ=0.4509  (A scored w/ B-params 0.4495, B scored w/ A-params 0.4524) | in-half A 0.4525, B 0.4597
+  tuned-on-all: all 0.4554  A 0.4522  B 0.4590  tp/fp/fn=1099/475/588
+  PA={'thr': 0.45, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  PB={'thr': 0.5, 'lam': 0.28, 'a_min': 300, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 0}
+  Pall={'thr': 0.65, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 0}
+
+### M6 rescorer [+agree]  [8s]
+  cross-fit PQ=0.4529  (A scored w/ B-params 0.4513, B scored w/ A-params 0.4547) | in-half A 0.4546, B 0.4612
+  tuned-on-all: all 0.4577  A 0.4546  B 0.4611  tp/fp/fn=1113/492/574
+  PA={'thr': 0.65, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  PB={'thr': 0.5, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  Pall={'thr': 0.65, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+
+### M6 rescorer [all]  [8s]
+  cross-fit PQ=0.4571  (A scored w/ B-params 0.4529, B scored w/ A-params 0.4616) | in-half A 0.4546, B 0.4649
+  tuned-on-all: all 0.4586  A 0.4541  B 0.4635  tp/fp/fn=1116/490/571
+  PA={'thr': 0.65, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  PB={'thr': 0.6, 'lam': 0.28, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  Pall={'thr': 0.65, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}

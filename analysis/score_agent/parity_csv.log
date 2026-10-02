@@ -1,0 +1,8 @@
+[csv] stems=141 readings=232 gt_rows=1687 pred_rows=1191  build 27s
+validator: {'rows': 1191, 'stems': 141, 'test_stems': 141}
+csv rows == in-memory rows: True
+official  PQ=0.389792 S=704.5482 TP=950 FP=978 FN=737 81s
+metric    PQ=0.389792 S=704.5482 TP=950 FP=978 FN=737
+FastGT    PQ=0.389792 S=704.5482 TP=950 FP=978 FN=737
+  metric vs official: counts IDENTICAL  |dPQ|=2.62e-11 |dS|=4.73e-08
+  FastGT vs official: counts IDENTICAL  |dPQ|=2.62e-11 |dS|=4.73e-08

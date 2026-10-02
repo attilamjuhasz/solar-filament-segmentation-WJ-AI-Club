@@ -1,0 +1,51 @@
+ep8 cands without an ep4 twin: 0
+ep4 best_params (qpu thr.6 lam.35 a400 A)                  A=0.4372 B=0.4479 all=0.4423 tp=1005 fp=387 fn=682 sq=0.678
+M0 tuned-on-all ep8 (qm thr.65 lam.3 a100 AP small400/.3)  A=0.4564 B=0.4549 all=0.4556 tp=1105 fp=490 fn=582 sq=0.677
+q lam0.2 thr0.5 a100 own.8 AP                              A=0.4379 B=0.4464 all=0.4420 tp=1185 fp=732 fn=502 sq=0.672
+q lam0.2 thr0.6 a100 own.8 AP                              A=0.4384 B=0.4454 all=0.4418 tp=1182 fp=735 fn=505 sq=0.674
+q lam0.225 thr0.5 a100 own.8 AP                            A=0.4414 B=0.4476 all=0.4444 tp=1167 fp=680 fn=520 sq=0.673
+q lam0.225 thr0.6 a100 own.8 AP                            A=0.4420 B=0.4466 all=0.4442 tp=1164 fp=683 fn=523 sq=0.674
+q lam0.25 thr0.5 a100 own.8 AP                             A=0.4470 B=0.4549 all=0.4507 tp=1157 fp=612 fn=530 sq=0.673
+q lam0.25 thr0.6 a100 own.8 AP                             A=0.4476 B=0.4539 all=0.4506 tp=1154 fp=615 fn=533 sq=0.675
+qmp lam0.2 thr0.5 a100 own.8 AP                            A=0.4481 B=0.4571 all=0.4524 tp=1125 fp=552 fn=562 sq=0.676
+qmp lam0.2 thr0.6 a100 own.8 AP                            A=0.4471 B=0.4559 all=0.4513 tp=1121 fp=556 fn=566 sq=0.677
+qmp lam0.225 thr0.5 a100 own.8 AP                          A=0.4540 B=0.4591 all=0.4564 tp=1103 fp=483 fn=584 sq=0.677
+qmp lam0.225 thr0.6 a100 own.8 AP                          A=0.4524 B=0.4579 all=0.4550 tp=1098 fp=488 fn=589 sq=0.678
+qmp lam0.25 thr0.5 a100 own.8 AP                           A=0.4484 B=0.4581 all=0.4530 tp=1067 fp=440 fn=620 sq=0.678
+qmp lam0.25 thr0.6 a100 own.8 AP                           A=0.4462 B=0.4574 all=0.4515 tp=1062 fp=445 fn=625 sq=0.679
+q48 lam0.2 thr0.5 a100 own.8 AP                            A=0.4265 B=0.4315 all=0.4290 tp=1219 fp=910 fn=468 sq=0.671
+q48 lam0.2 thr0.6 a100 own.8 AP                            A=0.4257 B=0.4295 all=0.4275 tp=1212 fp=918 fn=475 sq=0.673
+q48 lam0.225 thr0.5 a100 own.8 AP                          A=0.4295 B=0.4359 all=0.4326 tp=1209 fp=858 fn=478 sq=0.672
+q48 lam0.225 thr0.6 a100 own.8 AP                          A=0.4295 B=0.4344 all=0.4318 tp=1204 fp=863 fn=483 sq=0.673
+q48 lam0.25 thr0.5 a100 own.8 AP                           A=0.4351 B=0.4425 all=0.4387 tp=1200 fp=791 fn=487 sq=0.672
+q48 lam0.25 thr0.6 a100 own.8 AP                           A=0.4351 B=0.4410 all=0.4379 tp=1195 fp=796 fn=492 sq=0.674
+q48mp lam0.2 thr0.5 a100 own.8 AP                          A=0.4402 B=0.4527 all=0.4462 tp=1162 fp=667 fn=525 sq=0.675
+q48mp lam0.2 thr0.6 a100 own.8 AP                          A=0.4403 B=0.4505 all=0.4452 tp=1158 fp=671 fn=529 sq=0.676
+q48mp lam0.225 thr0.5 a100 own.8 AP                        A=0.4417 B=0.4534 all=0.4472 tp=1144 fp=622 fn=543 sq=0.675
+q48mp lam0.225 thr0.6 a100 own.8 AP                        A=0.4417 B=0.4511 all=0.4462 tp=1140 fp=626 fn=547 sq=0.676
+q48mp lam0.25 thr0.5 a100 own.8 AP                         A=0.4453 B=0.4576 all=0.4511 tp=1120 fp=549 fn=567 sq=0.676
+q48mp lam0.25 thr0.6 a100 own.8 AP                         A=0.4453 B=0.4559 all=0.4503 tp=1117 fp=552 fn=570 sq=0.677
+q lam.225 thr.5 a100 own.8 A                               A=0.4428 B=0.4498 all=0.4462 tp=1159 fp=644 fn=528 sq=0.672
+q lam.225 thr.5 a300 own.8 AP                              A=0.4392 B=0.4470 all=0.4430 tp=1159 fp=674 fn=528 sq=0.673
+qmp lam.225 thr.5 a300 own.8 AP                            A=0.4526 B=0.4597 all=0.4560 tp=1100 fp=480 fn=587 sq=0.677
+
+### M8 q averaged over ep4+ep8 checkpoints  [6s]
+  cross-fit PQ=0.4470  (A scored w/ B-params 0.4429, B scored w/ A-params 0.4513) | in-half A 0.4444, B 0.4542
+  tuned-on-all: all 0.4483  A 0.4429  B 0.4542  tp/fp/fn=1164/636/523
+  PA={'thr': 0.55, 'lam': 0.3, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  PB={'thr': 0.5, 'lam': 0.3, 'a_min': 100, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 0}
+  Pall={'thr': 0.5, 'lam': 0.3, 'a_min': 100, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 0}
+
+### M8b (q4+q8)/2 * mean_p  [6s]
+  cross-fit PQ=0.4485  (A scored w/ B-params 0.4435, B scored w/ A-params 0.4542) | in-half A 0.4485, B 0.4595
+  tuned-on-all: all 0.4517  A 0.4465  B 0.4574  tp/fp/fn=1106/514/581
+  PA={'thr': 0.45, 'lam': 0.28, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  PB={'thr': 0.5, 'lam': 0.26, 'a_min': 300, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  Pall={'thr': 0.45, 'lam': 0.26, 'a_min': 300, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+
+### M9 plain q (ep8), theory lam grid  [6s]
+  cross-fit PQ=0.4510  (A scored w/ B-params 0.4482, B scored w/ A-params 0.4542) | in-half A 0.4533, B 0.4578
+  tuned-on-all: all 0.4538  A 0.4533  B 0.4544  tp/fp/fn=1116/522/571
+  PA={'thr': 0.55, 'lam': 0.3, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  PB={'thr': 0.6, 'lam': 0.28, 'a_min': 100, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 0}
+  Pall={'thr': 0.65, 'lam': 0.3, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}

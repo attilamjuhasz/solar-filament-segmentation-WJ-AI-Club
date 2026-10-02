@@ -1,0 +1,10 @@
+=== D
+D  GT instance of reader A vs reader B: share of instances | P(match IoU>.5) | P(any IoU>.1) | mean IoU if matched
+   area<       200: 0.007 | 0.224 | 0.431 | 0.611
+   area<       400: 0.075 | 0.336 | 0.538 | 0.614
+   area<      1000: 0.295 | 0.470 | 0.715 | 0.629
+   area<      3000: 0.410 | 0.587 | 0.874 | 0.631
+   area<      8000: 0.171 | 0.615 | 0.927 | 0.645
+   area<1000000000: 0.042 | 0.602 | 0.931 | 0.659
+   all: P(match)=0.536 meanIoU|match=0.634
+=== A

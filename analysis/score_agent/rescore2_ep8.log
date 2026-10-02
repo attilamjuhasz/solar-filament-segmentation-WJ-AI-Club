@@ -1,0 +1,43 @@
+setup 28s
+
+### M6 rescorer [q,mean_p]  [9s]
+  cross-fit PQ=0.4504  (A scored w/ B-params 0.4510, B scored w/ A-params 0.4498) | in-half A 0.4565, B 0.4576
+  tuned-on-all: all 0.4542  A 0.4543  B 0.4540  tp/fp/fn=1102/496/585
+  PA={'thr': 0.45, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  PB={'thr': 0.5, 'lam': 0.25, 'a_min': 300, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 0}
+  Pall={'thr': 0.5, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+
+### M6 rescorer [q,mean_p,peak_u]  [9s]
+  cross-fit PQ=0.4505  (A scored w/ B-params 0.4485, B scored w/ A-params 0.4526) | in-half A 0.4548, B 0.4610
+  tuned-on-all: all 0.4570  A 0.4546  B 0.4596  tp/fp/fn=1105/484/582
+  PA={'thr': 0.45, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  PB={'thr': 0.5, 'lam': 0.28, 'a_min': 300, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  Pall={'thr': 0.5, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+
+### M6 rescorer [q,mean_p,peak_u,s1u_mean]  [8s]
+  cross-fit PQ=0.4516  (A scored w/ B-params 0.4506, B scored w/ A-params 0.4526) | in-half A 0.4551, B 0.4618
+  tuned-on-all: all 0.4558  A 0.4520  B 0.4601  tp/fp/fn=1102/486/585
+  PA={'thr': 0.45, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  PB={'thr': 0.5, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  Pall={'thr': 0.5, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+
+### M6 rescorer [q,logit_q,mean_p,peak_u,s1u_mean,lvA,lvP]  [8s]
+  cross-fit PQ=0.4510  (A scored w/ B-params 0.4504, B scored w/ A-params 0.4517) | in-half A 0.4549, B 0.4615
+  tuned-on-all: all 0.4549  A 0.4512  B 0.4590  tp/fp/fn=1103/478/584
+  PA={'thr': 0.45, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  PB={'thr': 0.5, 'lam': 0.28, 'a_min': 300, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 0}
+  Pall={'thr': 0.5, 'lam': 0.25, 'a_min': 100, 'own_frac': 0.8, 'levels': 'A', 'grow': 0, 'small': 0}
+
+### M7 no-fit score q*mean_p  [6s]
+  cross-fit PQ=0.4537  (A scored w/ B-params 0.4509, B scored w/ A-params 0.4567) | in-half A 0.4532, B 0.4598
+  tuned-on-all: all 0.4556  A 0.4523  B 0.4592  tp/fp/fn=1095/474/592
+  PA={'thr': 0.45, 'lam': 0.23, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  PB={'thr': 0.5, 'lam': 0.23, 'a_min': 300, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+  Pall={'thr': 0.5, 'lam': 0.23, 'a_min': 100, 'own_frac': 0.8, 'levels': 'AP', 'grow': 0, 'small': 0}
+
+### M3r S1-only inst gated by rescored [q,mean_p,peak_u,s1u_mean] S2 cand  [4s]
+  cross-fit PQ=0.4444  (A scored w/ B-params 0.4422, B scored w/ A-params 0.4469) | in-half A 0.4416, B 0.4516
+  tuned-on-all: all 0.4458  A 0.4425  B 0.4494  tp/fp/fn=1068/452/619
+  PA={'s1': 'loose', 'levels': 'AP', 'match_iou': 0.5, 'd0': 0.0, 'lam': 0.22, 'a_min': 300, 'own_frac': 0.0}
+  PB={'s1': 'loose', 'levels': 'A', 'match_iou': 0.5, 'd0': 0.0, 'lam': 0.25, 'a_min': 300, 'own_frac': 0.0}
+  Pall={'s1': 'loose', 'levels': 'A', 'match_iou': 0.5, 'd0': 0.0, 'lam': 0.25, 'a_min': 300, 'own_frac': 0.0}

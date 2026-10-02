@@ -1,0 +1,37 @@
+[first] stems=141 readings=232 gt_rows=1687 pred_rows=1077  build 1s
+official  PQ=0.755211 S=1288.3895 TP=1409 FP=316 FN=278 95s
+metric    PQ=0.755211 S=1288.3895 TP=1409 FP=316 FN=278
+FastGT    PQ=0.755208 S=1288.3855 TP=1409 FP=316 FN=278
+  metric vs official: counts IDENTICAL  |dPQ|=2.67e-10 |dS|=4.55e-07
+  FastGT vs official: counts IDENTICAL  |dPQ|=2.33e-06 |dS|=3.98e-03
+[union] stems=141 readings=232 gt_rows=1687 pred_rows=1128  build 16s
+official  PQ=0.751810 S=1337.8467 TP=1490 FP=382 FN=197 109s
+metric    PQ=0.751810 S=1337.8467 TP=1490 FP=382 FN=197
+FastGT    PQ=0.751809 S=1337.8438 TP=1490 FP=382 FN=197
+  metric vs official: counts IDENTICAL  |dPQ|=1.18e-11 |dS|=2.10e-08
+  FastGT vs official: counts IDENTICAL  |dPQ|=1.63e-06 |dS|=2.91e-03
+[perturb] stems=141 readings=232 gt_rows=1687 pred_rows=1191  build 36s
+official  PQ=0.389792 S=704.5482 TP=950 FP=978 FN=737 100s
+metric    PQ=0.389792 S=704.5482 TP=950 FP=978 FN=737
+FastGT    PQ=0.389792 S=704.5482 TP=950 FP=978 FN=737
+  metric vs official: counts IDENTICAL  |dPQ|=2.62e-11 |dS|=4.73e-08
+  FastGT vs official: counts IDENTICAL  |dPQ|=2.62e-11 |dS|=4.73e-08
+[overlap] stems=141 readings=232 gt_rows=1687 pred_rows=1550  build 20s
+official  PQ=0.410027 S=915.5912 TP=1251 FP=1257 FN=707 121s
+metric    PQ=0.410027 S=915.5912 TP=1251 FP=1257 FN=707
+FastGT    PQ=0.410027 S=915.5912 TP=1251 FP=1257 FN=707
+  metric vs official: counts IDENTICAL  |dPQ|=1.52e-10 |dS|=3.40e-07
+  FastGT vs official: counts IDENTICAL  |dPQ|=1.52e-10 |dS|=3.40e-07
+[empty] stems=141 readings=232 gt_rows=1687 pred_rows=0  build 1s
+official  PQ=0.000000 S=0.0000 TP=0 FP=0 FN=1687 44s
+metric    PQ=0.000000 S=0.0000 TP=0 FP=0 FN=1687
+FastGT    PQ=0.000000 S=0.0000 TP=0 FP=0 FN=1687
+  metric vs official: counts IDENTICAL  |dPQ|=0.00e+00 |dS|=0.00e+00
+  FastGT vs official: counts IDENTICAL  |dPQ|=0.00e+00 |dS|=0.00e+00
+[nogt] stems=141 readings=232 gt_rows=1687 pred_rows=707 (preds for 71/141 val stems + 20 test stems w/o GT) build 19s
+official  PQ=0.264106 S=351.9219 TP=476 FP=502 FN=1211 78s
+metric    PQ=0.264106 S=351.9219 TP=476 FP=502 FN=1211
+FastGT    PQ=0.264106 S=351.9219 TP=476 FP=502 FN=1211
+FastGT*   PQ=0.374584 S=351.9219 TP=476 FP=502 FN=425  <- val stems absent from the finals dict
+  metric vs official: counts IDENTICAL  |dPQ|=3.43e-10 |dS|=4.57e-07
+  FastGT vs official: counts IDENTICAL  |dPQ|=3.43e-10 |dS|=4.57e-07

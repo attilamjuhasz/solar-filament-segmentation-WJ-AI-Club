@@ -1,0 +1,60 @@
+
+===== S2 best (ep4, qpu thr.6 lam.35 a_min400 own.8 levels A): PQ=0.4331 tp=1120 fp=650 fn=567 sq=0.668
+ FP by cause:
+     225  no overlap with any reading
+     182  near-miss IoU .3-.5
+      88  low overlap IoU<.3
+      71  no overlap, matched in another reading
+      58  fragment(GT split over >=2 preds)
+      26  merge(covers>=2 GT)
+ FN by cause (pred-side | candidate-side):
+     139  near-miss IoU .3-.5 | cands only IoU<=.5
+     133  no pred overlap | a cand had IoU>.5
+      66  no pred overlap | no cand overlaps
+      57  no pred overlap | cands only IoU<=.5
+      55  merged into a pred covering >=2 GT | cands only IoU<=.5
+      43  near-miss IoU .3-.5 | a cand had IoU>.5
+      39  low overlap IoU<.3 | cands only IoU<=.5
+      19  fragmented over >=2 preds | cands only IoU<=.5
+       9  fragmented over >=2 preds | a cand had IoU>.5
+       7  merged into a pred covering >=2 GT | a cand had IoU>.5
+ FN where some cand had IoU>.5: n=192 q of that cand: median 0.362, share q>=.35: 0.52
+ size bin |  TP  |  FP  | FN(GT size)
+     <200 |    0 |    0 |   12
+     <400 |    0 |    0 |  108
+    <1000 |  346 |  316 |  204
+    <3000 |  540 |  260 |  156
+    <8000 |  192 |   71 |   64
+   >=8000 |   42 |    3 |   23
+ level TP/FP: {'A': (1120, 650)}
+
+===== S1-only tuned (t_hi.6 t_lo.45 gap8 min400 head0): PQ=0.4262 tp=1090 fp=633 fn=597 sq=0.667
+ FP by cause:
+     211  no overlap with any reading
+     182  near-miss IoU .3-.5
+      88  low overlap IoU<.3
+      65  no overlap, matched in another reading
+      55  fragment(GT split over >=2 preds)
+      32  merge(covers>=2 GT)
+ FN by cause (pred-side | candidate-side):
+     143  no pred overlap | a cand had IoU>.5
+     121  near-miss IoU .3-.5 | cands only IoU<=.5
+      66  no pred overlap | no cand overlaps
+      64  no pred overlap | cands only IoU<=.5
+      61  near-miss IoU .3-.5 | a cand had IoU>.5
+      56  merged into a pred covering >=2 GT | cands only IoU<=.5
+      38  low overlap IoU<.3 | cands only IoU<=.5
+      22  merged into a pred covering >=2 GT | a cand had IoU>.5
+      18  fragmented over >=2 preds | cands only IoU<=.5
+       6  fragmented over >=2 preds | a cand had IoU>.5
+       2  low overlap IoU<.3 | a cand had IoU>.5
+ FN where some cand had IoU>.5: n=234 q of that cand: median 0.393, share q>=.35: 0.62
+ size bin |  TP  |  FP  | FN(GT size)
+     <200 |    0 |    0 |   12
+     <400 |    0 |    0 |  114
+    <1000 |  327 |  316 |  221
+    <3000 |  511 |  244 |  173
+    <8000 |  205 |   67 |   59
+   >=8000 |   47 |    6 |   18
+S2best: half A 0.4275 (70 stems)  half B 0.4392 (71 stems)
+S1only: half A 0.4233 (70 stems)  half B 0.4293 (71 stems)

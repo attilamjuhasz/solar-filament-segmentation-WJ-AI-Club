@@ -1,0 +1,21 @@
+CURRENT best_params (qpu thr.6 lam.35 a400 own.8 A)     A=0.4275 B=0.4392 all=0.4331 tp=1120 fp=650 fn=567 sq=0.668
+qmp thr0.45 lam0.25 a300 own.8 AP                       A=0.4314 B=0.4413 all=0.4361 tp=1147 fp=705 fn=540 sq=0.673
+qmp thr0.45 lam0.3 a300 own.8 AP                        A=0.4383 B=0.4494 all=0.4436 tp=1110 fp=576 fn=577 sq=0.674
+qmp thr0.45 lam0.35 a300 own.8 AP                       A=0.4341 B=0.4454 all=0.4395 tp=1033 fp=454 fn=654 sq=0.675
+qmp thr0.5 lam0.25 a300 own.8 AP                        A=0.4318 B=0.4400 all=0.4357 tp=1145 fp=706 fn=542 sq=0.673
+qmp thr0.5 lam0.3 a300 own.8 AP                         A=0.4388 B=0.4481 all=0.4432 tp=1108 fp=577 fn=579 sq=0.674
+qmp thr0.5 lam0.35 a300 own.8 AP                        A=0.4346 B=0.4438 all=0.4390 tp=1031 fp=456 fn=656 sq=0.676
+qmp thr0.55 lam0.25 a300 own.8 AP                       A=0.4307 B=0.4395 all=0.4349 tp=1142 fp=708 fn=545 sq=0.673
+qmp thr0.55 lam0.3 a300 own.8 AP                        A=0.4374 B=0.4475 all=0.4422 tp=1105 fp=580 fn=582 sq=0.675
+qmp thr0.55 lam0.35 a300 own.8 AP                       A=0.4332 B=0.4434 all=0.4380 tp=1028 fp=459 fn=659 sq=0.676
+qmp thr0.6 lam0.25 a300 own.8 AP                        A=0.4298 B=0.4386 all=0.4340 tp=1139 fp=708 fn=548 sq=0.673
+qmp thr0.6 lam0.3 a300 own.8 AP                         A=0.4361 B=0.4453 all=0.4405 tp=1100 fp=582 fn=587 sq=0.675
+qmp thr0.6 lam0.35 a300 own.8 AP                        A=0.4321 B=0.4420 all=0.4368 tp=1025 fp=462 fn=662 sq=0.676
+qmp thr.5 lam.3 a300 own.8 A                            A=0.4342 B=0.4466 all=0.4401 tp=1070 fp=507 fn=617 sq=0.671
+qmp thr.5 lam.3 a300 own.8 APB                          A=0.4350 B=0.4401 all=0.4374 tp=1092 fp=587 fn=595 sq=0.674
+qmp thr.5 lam.3 a300 own.8 APBC                         A=0.4350 B=0.4401 all=0.4374 tp=1092 fp=587 fn=595 sq=0.674
+qmp thr.5 lam.3 a100 own.8 AP                           A=0.4386 B=0.4478 all=0.4430 tp=1110 fp=583 fn=577 sq=0.674
+qmp thr.5 lam.3 a200 own.8 AP                           A=0.4386 B=0.4478 all=0.4430 tp=1110 fp=583 fn=577 sq=0.674
+qmp thr.5 lam.3 a400 own.8 AP                           A=0.4342 B=0.4459 all=0.4398 tp=1084 fp=553 fn=603 sq=0.674
+qmp thr.5 lam.3 a300 own0.6 AP                          A=0.4386 B=0.4478 all=0.4430 tp=1108 fp=579 fn=579 sq=0.674
+qmp thr.5 lam.3 a300 own.8 AP grow1                     A=0.4040 B=0.4078 all=0.4058 tp=1050 fp=635 fn=637 sq=0.652

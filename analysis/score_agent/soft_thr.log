@@ -1,0 +1,10 @@
+thr=0.2 gate=none       PQ=0.3314 {'sq': np.float64(0.6365), 'tp': 802, 'fp': 841, 'fn': 636}
+thr=0.2 gate=core>=.75  PQ=0.3408 {'sq': np.float64(0.6384), 'tp': 687, 'fp': 449, 'fn': 751}
+thr=0.3 gate=none       PQ=0.3397 {'sq': np.float64(0.6413), 'tp': 818, 'fp': 833, 'fn': 620}
+thr=0.3 gate=core>=.75  PQ=0.3533 {'sq': np.float64(0.6451), 'tp': 705, 'fp': 432, 'fn': 733}
+thr=0.4 gate=none       PQ=0.3366 {'sq': np.float64(0.6442), 'tp': 827, 'fp': 901, 'fn': 611}
+thr=0.4 gate=core>=.75  PQ=0.3722 {'sq': np.float64(0.6477), 'tp': 742, 'fp': 402, 'fn': 696}
+thr=0.5 gate=none       PQ=0.3951 {'sq': np.float64(0.6621), 'tp': 806, 'fp': 457, 'fn': 632}
+thr=0.5 gate=core>=.75  PQ=0.3959 {'sq': np.float64(0.6621), 'tp': 806, 'fp': 452, 'fn': 632}
+thr=0.6 gate=none       PQ=0.3703 {'sq': np.float64(0.6544), 'tp': 771, 'fp': 516, 'fn': 667}
+thr=0.6 gate=core>=.75  PQ=0.3711 {'sq': np.float64(0.6544), 'tp': 771, 'fp': 510, 'fn': 667}
