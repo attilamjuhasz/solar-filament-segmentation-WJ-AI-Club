@@ -121,14 +121,15 @@ def resize_to(a, n, area=True):
 
 
 def s1_crop(s1p, x0, y0, side):
-    """S1 probability maps (C, 1024, 1024) uint8 -> (C, S, S) float in [0, 1] for the native window.
+    """S1 probability maps (C, R, R) uint8 (R = 1024, 1536, ...) -> (C, S, S) float in [0, 1] for the native window.
 
     Exact pixel-centre mapping: S-pixel j sits at native x0 + (j + .5) * step - .5, i.e. at
-    1024-coordinate (x0 + (j + .5) * step) / 2 - .5 (bilinear, zero outside the frame).
+    R-coordinate (x0 + (j + .5) * step) / f - .5 with f = 2048 / R (bilinear, zero outside the frame).
     """
     step = side / S
-    M = np.array([[step / 2, 0, (x0 + 0.5 * step) / 2 - 0.5],
-                  [0, step / 2, (y0 + 0.5 * step) / 2 - 0.5]], np.float64)
+    f = 2048 / s1p.shape[-1]
+    M = np.array([[step / f, 0, (x0 + 0.5 * step) / f - 0.5],
+                  [0, step / f, (y0 + 0.5 * step) / f - 0.5]], np.float64)
     out = [cv2.warpAffine(np.ascontiguousarray(c), M, (S, S), flags=cv2.INTER_LINEAR | cv2.WARP_INVERSE_MAP,
                           borderMode=cv2.BORDER_CONSTANT, borderValue=0) for c in s1p]
     return np.stack(out).astype(np.float32) / 255.0

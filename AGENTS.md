@@ -2,10 +2,20 @@
 
 Competition facts and environment notes are in `CLAUDE.md`. This file covers the agent team, the current pipeline state, and the improvement loop.
 
-## Status: running (resumed 2026-10-06 18:15, overnight run)
-Queue Q2 restarted (`runs/q2.out`): E3a → SEED → E2. Research agents: radical-researcher, kaggle-planner (scorer), code-reviewer (`--s1-ch`).
-If paused again: kill `q2_after_e1.sh` and `src/s2.py`/`src/s1.py`, then relaunch the queue with `nohup bash scripts/exp/q2_after_e1.sh > runs/q2.out 2>&1 &`
-(a stopped training run restarts from scratch; move its partial `runs/<name>/` aside first).
+## Status: running unattended (2026-10-06 ~19:40) — RESUME HERE
+Everything below runs DETACHED (nohup) and survives Claude exiting. Nothing needs Claude except judging results.
+- **Q2** (`runs/q2.out`): E3a (S2 q-avg) → SEED (S2 seed 1) → E2 (S1 40 ep seed 0, `s1_r34_f0_e40`) → existing S2s on E2 proposals.
+- **P1** (`runs/p1.out`, parallel): S1 40 ep seed 1 (`s1_r34_f0_e40_s1`).
+- **Q3** (`runs/q3.out`, auto-starts after Q2, then waits for P1), `scripts/exp/q3_after_q2_p1.sh`:
+  - A: CSVs for E3a/SEED + the v2+SEED q-ensemble;
+  - B: 2-seed S1 ensemble (`src/ens_probs.py`) → S2 v2;
+  - C: MaskQ S2 (`s2_r34_mq`);
+  - D: E4 1536 fine-tune (`s1_r34_f0_1536`).
+  Every result gets a validated CSV in `submissions/` and an `== EVAL` val-PQ line in `runs/q3.out`.
+- **Picking the best:** grep `EVAL\|^(np.float` in runs/q2.out and runs/q3.out. Compare to v2 = **0.4564** (current best, LB 0.37). Adopt only if better on BOTH split halves: `analysis/score_agent/round2/base.py` / `ana.py` harness. Then update the ledger.
+- **7:00 AM Kaggle upload + text** was a session-only cron. If this Claude session died, do it manually in a new session: "read AGENTS.md, pick the best validated CSV, upload it, text me the score" (texting: `bash scripts/local/notify.sh "msg"`).
+- **Git:** commit locally on `zaid`. **Do NOT push** until the user says so.
+- The Mac is kept awake by `caffeinate` until about 09:30 on 2026-10-07.
 
 ## The agent team (`.claude/agents/`)
 | Agent | Use it when | Writes code? |
@@ -123,6 +133,7 @@ Remaining error anatomy (v2 on val):
 | E3a | S2 with ONLY the q target averaged over readings (`--q-avg`, plain props, 8 ep, `s2_r34_qavg_plain`) | queued (Q2) |
 | SEED | v2 S2 recipe with seed 1 (`s2_r34_seed1`): run-to-run noise baseline + 2-seed q ensemble | queued (Q2) |
 | E2 | S1 40 epochs (`s1_r34_f0_e40`), then existing S2s scored on its proposals | queued (Q2) |
+| Q3 | A: Q2 CSVs + q-ensemble; B: 2-seed S1 ensemble; C: MaskQ S2; D: E4 1536 fine-tune | auto-queued (`runs/q3.out`) |
 | P1 | S1 40 epochs, **seed 1** (`s1_r34_f0_e40_s1`), run in PARALLEL with Q2 (user freed the machine): with E2 gives a 2-model S1 probability ensemble | running (`runs/p1.out`) |
 | E4 | S1 fine-tune at 1536 from the best S1 | planned |
 | E5 | 5-fold S1 ensemble + OOF (lets lam be re-derived on 707 stems) | planned |

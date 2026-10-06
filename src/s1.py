@@ -27,24 +27,25 @@ from assemble import FastGT  # noqa: E402
 from common import CACHE, DATA, RUNS, device, disk_info, disk_mask, load_meta, make_planes  # noqa: E402
 
 ANN = os.path.join(DATA, "train", "MAGFiLO_1.0_Annotations_kaggle2026_train.json")
-CROP = 512  # at 1024 resolution
+CROP = 512  # training crop, in pixels of the working resolution (--res, default 1024)
 
 
 def build_model(encoder="resnet34", pretrained=True):
     return smp.Unet(encoder, encoder_weights="imagenet" if pretrained else None, in_channels=3, classes=2)
 
 
-def load_img1024(stem):
-    return np.load(os.path.join(CACHE, "img1024", stem + ".npy"))
+def load_img(stem, res=1024):
+    return np.load(os.path.join(CACHE, f"img{res}", stem + ".npy"))
 
 
-def full_planes(stem):
-    return make_planes(load_img1024(stem), disk_info(stem), 0.0, 0.0, 2.0)
+def full_planes(stem, res=1024):
+    return make_planes(load_img(stem, res), disk_info(stem), 0.0, 0.0, 2048 / res)
 
 
 # ----------------------------------------------------------------------------------------- data
 class S1Train(Dataset):
-    def __init__(self, stems, readings, n_samples, seed=0):
+    def __init__(self, stems, readings, n_samples, seed=0, res=1024):
+        self.res = res
         self.stems = list(stems)
         self.readings = readings  # stem -> [reading_id]
         self.n = n_samples
@@ -59,19 +60,20 @@ class S1Train(Dataset):
         stem = self.stems[rng.integers(len(self.stems))]
         rid = self.readings[stem][rng.integers(len(self.readings[stem]))]
         info = disk_info(stem)
+        res, step = self.res, 2048 / self.res
         if rng.random() < 0.75 and self.boxes.get(stem):
             cx, cy, _, _ = self.boxes[stem][rng.integers(len(self.boxes[stem]))]
-            cx, cy = (cx + rng.normal(0, 96)) / 2, (cy + rng.normal(0, 96)) / 2
+            cx, cy = (cx + rng.normal(0, 96)) / step, (cy + rng.normal(0, 96)) / step
         else:
             a, rr = rng.uniform(0, 2 * np.pi), info["r"] * np.sqrt(rng.uniform(0, 0.9))
-            cx, cy = (info["cx"] + rr * np.cos(a)) / 2, (info["cy"] + rr * np.sin(a)) / 2
-        ox = int(np.clip(round(cx - CROP / 2), 0, 1024 - CROP))
-        oy = int(np.clip(round(cy - CROP / 2), 0, 1024 - CROP))
+            cx, cy = (info["cx"] + rr * np.cos(a)) / step, (info["cy"] + rr * np.sin(a)) / step
+        ox = int(np.clip(round(cx - CROP / 2), 0, res - CROP))
+        oy = int(np.clip(round(cy - CROP / 2), 0, res - CROP))
         sl = (slice(oy, oy + CROP), slice(ox, ox + CROP))
-        img = np.load(os.path.join(CACHE, "img1024", stem + ".npy"), mmap_mode="r")[sl]
-        x = make_planes(np.ascontiguousarray(img), info, 2.0 * ox, 2.0 * oy, 2.0)
-        y0 = np.load(os.path.join(CACHE, "fg1024", rid + ".npy"), mmap_mode="r")[sl]
-        y1 = np.load(os.path.join(CACHE, "un1024", stem + ".npy"), mmap_mode="r")[sl]
+        img = np.load(os.path.join(CACHE, f"img{res}", stem + ".npy"), mmap_mode="r")[sl]
+        x = make_planes(np.ascontiguousarray(img), info, step * ox, step * oy, step)
+        y0 = np.load(os.path.join(CACHE, f"fg{res}", rid + ".npy"), mmap_mode="r")[sl]
+        y1 = np.load(os.path.join(CACHE, f"un{res}", stem + ".npy"), mmap_mode="r")[sl]
         y = np.stack([y0, y1]).astype(np.float32) / 255.0
 
         # photometric on intensity planes only
@@ -108,15 +110,15 @@ D4 = [(k, f) for k in range(4) for f in (False, True)]
 
 
 @torch.no_grad()
-def predict_probs(model, stems, dev, tta=False, bs=2):
-    """-> {stem: float16 (2, 1024, 1024) sigmoid probs}"""
+def predict_probs(model, stems, dev, tta=False, bs=2, res=1024):
+    """-> {stem: float16 (2, res, res) sigmoid probs}"""
     model.eval()
     out = {}
     views = D4 if tta else [(0, False)]
     for i in range(0, len(stems), bs):
         chunk = stems[i:i + bs]
-        x = torch.from_numpy(np.stack([full_planes(s) for s in chunk])).to(dev)
-        acc = torch.zeros(len(chunk), 2, 1024, 1024, device=dev)
+        x = torch.from_numpy(np.stack([full_planes(s, res) for s in chunk])).to(dev)
+        acc = torch.zeros(len(chunk), 2, res, res, device=dev)
         for k, f in views:
             xv = torch.rot90(x, k, (2, 3))
             if f:
@@ -191,11 +193,11 @@ def split(val_fold):
     return tr, va, readings
 
 
-def validate(model, va, gt, dev):
+def validate(model, va, gt, dev, res=1024):
     """gt: assemble.FastGT over the val stems. Post-processes stem by stem (bounded memory)."""
     finals = {}
     for i in range(0, len(va), 8):
-        probs = predict_probs(model, va[i:i + 8], dev)
+        probs = predict_probs(model, va[i:i + 8], dev, res=res)
         for s, p in probs.items():
             finals[s] = postprocess_s1(p.astype(np.float32), s)
     return gt.pq(finals)
@@ -209,10 +211,12 @@ def train(args):
     os.makedirs(out_dir, exist_ok=True)
     tr, va, readings = split(args.val_fold)
     gt = FastGT(va) if va else None
-    ds = S1Train(tr, readings, args.samples, seed=args.seed)
+    ds = S1Train(tr, readings, args.samples, seed=args.seed, res=args.res)
     extra = dict(persistent_workers=True, prefetch_factor=4) if args.workers > 0 else {}
     dl = DataLoader(ds, batch_size=args.bs, shuffle=False, num_workers=args.workers, drop_last=True, **extra)
     model = build_model(args.encoder).to(dev)
+    if args.init:  # fine-tune from an existing checkpoint (e.g. a 1024 model continued at 1536)
+        model.load_state_dict(torch.load(args.init, map_location=dev))
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     total = args.epochs * len(dl)
     warm = min(300, total // 10)
@@ -234,7 +238,7 @@ def train(args):
             run += loss.item()
         msg = f"ep {ep} loss {run / len(dl):.4f} {time.time() - t0:.0f}s"
         if va and (ep % args.eval_every == 0 or ep == args.epochs):
-            pq, info = validate(model, va, gt, dev)
+            pq, info = validate(model, va, gt, dev, args.res)
             msg += f" | val PQ {pq:.4f} tp {info['tp']} fp {info['fp']} fn {info['fn']} sq {info['sq']:.3f}"
             if pq > best:
                 best = pq
@@ -251,7 +255,8 @@ def train(args):
 def predict(args):
     dev = device()
     out_dir = os.path.join(RUNS, args.name)
-    encoder = json.load(open(os.path.join(out_dir, "args.json"))).get("encoder", args.encoder)
+    cfg = json.load(open(os.path.join(out_dir, "args.json")))
+    encoder, res = cfg.get("encoder", args.encoder), cfg.get("res", 1024)
     model = build_model(encoder, pretrained=False).to(dev)
     model.load_state_dict(torch.load(os.path.join(out_dir, args.ckpt), map_location=dev))
     tr, va, _ = split(args.val_fold)
@@ -262,7 +267,7 @@ def predict(args):
     pdir = os.path.join(out_dir, f"probs_{tag}")
     os.makedirs(pdir, exist_ok=True)
     for i in range(0, len(stems), 16):
-        for s, p in predict_probs(model, stems[i:i + 16], dev, tta=args.tta).items():
+        for s, p in predict_probs(model, stems[i:i + 16], dev, tta=args.tta, res=res).items():
             np.save(os.path.join(pdir, s + ".npy"), (p.astype(np.float32) * 255).round().astype(np.uint8))
         print(f"{min(i + 16, len(stems))}/{len(stems)}", flush=True)
 
@@ -282,5 +287,7 @@ if __name__ == "__main__":
     ap.add_argument("--predict", default=None)
     ap.add_argument("--tta", action="store_true")
     ap.add_argument("--ckpt", default="best.pt")
+    ap.add_argument("--res", type=int, default=1024, help="working resolution (caches img/fg/un<res> must exist)")
+    ap.add_argument("--init", default=None, help="checkpoint to start training from (fine-tuning)")
     a = ap.parse_args()
     predict(a) if a.predict else train(a)
