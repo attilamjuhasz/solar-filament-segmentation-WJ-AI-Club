@@ -20,6 +20,7 @@ import time
 import cv2
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from pycocotools import mask as mu
 from torch.utils.data import DataLoader, Dataset
@@ -34,7 +35,56 @@ MAX_READ = 3  # max annotator readings per stem
 MIN_SIDE, MAX_SIDE = 128, 1536
 
 
-def build_model(pretrained=True, in_ch=4):
+class MaskQ(nn.Module):
+    """Mask-aware quality head: encoder features + the DETACHED predicted mask + the prior (+ S1 channels).
+
+    Mask-pooled deep features, a small conv over [stride-16 features, max-pooled mask, prior] and cheap mask
+    statistics -> one logit for E[IoU * 1(IoU > .5)]. Gradients never flow back into the mask path.
+    """
+
+    def __init__(self, n_extra=0):
+        super().__init__()
+        self.conv = nn.Sequential(nn.Conv2d(256 + 2 + n_extra, 128, 3, padding=1), nn.BatchNorm2d(128), nn.ReLU(True),
+                                  nn.Conv2d(128, 128, 3, stride=2, padding=1), nn.BatchNorm2d(128), nn.ReLU(True))
+        self.mlp = nn.Sequential(nn.Linear(512 * 2 + 256 * 2 + 128 + 6, 256), nn.ReLU(True), nn.Dropout(0.2),
+                                 nn.Linear(256, 1))
+
+    def forward(self, f, m, x):
+        p = torch.sigmoid(m).detach()
+        pr = x[:, 3:4]
+        a16, a8 = F.avg_pool2d(p, 16), F.avg_pool2d(p, 32)
+        ring16 = (F.max_pool2d(a16, 3, 1, 1) - a16).clamp(min=0)
+
+        def mpool(t, a):
+            return (t * a).sum((2, 3)) / a.sum((2, 3)).clamp(min=1e-3)
+
+        ex = [F.max_pool2d(x[:, 4:], 16)] if x.shape[1] > 4 else []
+        c = self.conv(torch.cat([f[4], F.max_pool2d(p, 16), F.max_pool2d(pr, 16)] + ex, 1)).mean((2, 3))
+        h = (p > 0.5).float()
+        ha = h.sum((2, 3)).clamp(min=1)
+        edge = torch.cat([h[..., 0, :], h[..., -1, :], h[..., :, 0], h[..., :, -1]], -1).amax(-1)
+        st = torch.cat([torch.log1p(ha) / 10, (p * h).sum((2, 3)) / ha, ((p > 0.3) & (p < 0.7)).float().sum((2, 3)) / ha,
+                        edge, (h * pr).sum((2, 3)) / pr.sum((2, 3)).clamp(min=1), (h * pr).sum((2, 3)) / ha], 1)
+        return self.mlp(torch.cat([f[5].mean((2, 3)), mpool(f[5], a8), mpool(f[4], a16), mpool(f[4], ring16), c, st], 1))
+
+
+class S2Net(nn.Module):
+    """UNet-ResNet34 mask path + MaskQ quality head; returns (mask_logits, q_logits) like smp's aux_params model."""
+
+    def __init__(self, in_ch=4, pretrained=True):
+        super().__init__()
+        self.net = smp.Unet("resnet34", encoder_weights="imagenet" if pretrained else None, in_channels=in_ch, classes=1)
+        self.q = MaskQ(in_ch - 4)
+
+    def forward(self, x):
+        f = self.net.encoder(x)
+        m = self.net.segmentation_head(self.net.decoder(f))
+        return m, self.q(f, m, x)
+
+
+def build_model(pretrained=True, in_ch=4, qhead="aux"):
+    if qhead == "mask":
+        return S2Net(in_ch, pretrained)
     return smp.Unet("resnet34", encoder_weights="imagenet" if pretrained else None, in_channels=in_ch, classes=1,
                     aux_params=dict(classes=1, pooling="avg", dropout=0.2))
 
@@ -151,8 +201,10 @@ def corrupt(m, inst, lab, rng):
 
 
 class S2Train(Dataset):
-    def __init__(self, stems, readings, props_dir, n_samples, p_prop=0.6, seed=0, q_avg=False, s1_dir=None):
+    def __init__(self, stems, readings, props_dir, n_samples, p_prop=0.6, seed=0, q_avg=False, s1_dir=None,
+                 levels=None, flag_prop=False):
         self.stems, self.readings, self.props_dir, self.s1_dir = list(stems), readings, props_dir, s1_dir
+        self.levels, self.flag_prop = levels, flag_prop
         self.n, self.p_prop, self.seed, self.q_avg = n_samples, p_prop, seed, q_avg
         w = np.array([len(readings[s]) for s in self.stems], np.float64)
         self.p_stem = w / w.sum()
@@ -165,8 +217,11 @@ class S2Train(Dataset):
         while True:
             stem = self.stems[rng.choice(len(self.stems), p=self.p_stem)]
             rds = self.readings[stem]
-            if rng.random() < self.p_prop:
+            is_prop = rng.random() < self.p_prop
+            if is_prop:
                 props = pickle.load(open(os.path.join(self.props_dir, stem + ".pkl"), "rb"))
+                if self.levels:
+                    props = [d for d in props if d["level"] in self.levels]
                 if not props:
                     continue
                 d = props[rng.integers(len(props))]
@@ -216,7 +271,8 @@ class S2Train(Dataset):
         x, y = np.rot90(x, k, (1, 2)), np.rot90(y, k, (1, 2))
         if flip:
             x, y = x[:, :, ::-1], y[:, :, ::-1]
-        meta = torch.tensor([gt_area, (side / S) ** 2], dtype=torch.float32)
+        meta = torch.tensor([gt_area, (side / S) ** 2] + ([float(is_prop)] if self.flag_prop else []),
+                            dtype=torch.float32)
         out = [torch.from_numpy(np.ascontiguousarray(x)), torch.from_numpy(np.ascontiguousarray(y)), meta]
         if self.q_avg:
             y_all = np.rot90(y_all, k, (1, 2))
@@ -226,7 +282,7 @@ class S2Train(Dataset):
         return tuple(out)
 
 
-def s2_loss(mask_logits, q_logits, y, meta, wq, y_all=None, rmeta=None):
+def s2_loss(mask_logits, q_logits, y, meta, wq, y_all=None, rmeta=None, qw=None):
     """Mask loss only on samples whose blob belongs to a GT filament (existence is the q head's job,
     otherwise the mask shrinks toward the annotators' intersection). q head: soft target
     IoU * 1[IoU > .5] so sigmoid(q) estimates the blob's expected PQ numerator contribution.
@@ -254,7 +310,10 @@ def s2_loss(mask_logits, q_logits, y, meta, wq, y_all=None, rmeta=None):
             contrib = iou_r * ((iou_r > 0.5) & (areas > 0)).float() * valid
             q = contrib.sum(1) / valid.sum(1).clamp(min=1)
         q = q.clamp(max=1.0)  # S-scale area can exceed the native area by ~1% -> IoU proxy slightly > 1
-    lq = F.binary_cross_entropy_with_logits(q_logits[:, 0], q)
+    if qw is None:
+        lq = F.binary_cross_entropy_with_logits(q_logits[:, 0], q)
+    else:  # e.g. down-weight synthetic blobs so q is learned mostly on real S1 proposals
+        lq = (F.binary_cross_entropy_with_logits(q_logits[:, 0], q, reduction="none") * qw).sum() / qw.sum().clamp(min=1e-6)
     return bce + dice + wq * lq, q.mean().item()
 
 
@@ -336,10 +395,10 @@ def train(args):
     args.s1_probs = args.s1_probs or "probs_plain"  # resolved value is recorded in args.json
     s1_dir = os.path.join(RUNS, args.s1, args.s1_probs) if args.s1_ch else None
     ds = S2Train(tr, readings, props_dir, args.samples, p_prop=args.p_prop, seed=args.seed, q_avg=args.q_avg,
-                 s1_dir=s1_dir)
+                 s1_dir=s1_dir, levels=args.prop_levels, flag_prop=args.q_syn_w != 1.0)
     extra = dict(persistent_workers=True, prefetch_factor=4) if args.workers > 0 else {}
     dl = DataLoader(ds, batch_size=args.bs, num_workers=args.workers, drop_last=True, **extra)
-    model = build_model(in_ch=6 if args.s1_ch else 4).to(dev)
+    model = build_model(in_ch=6 if args.s1_ch else 4, qhead=args.qhead).to(dev)
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     total = args.epochs * len(dl)
     warm = min(300, total // 10)
@@ -354,9 +413,10 @@ def train(args):
         for batch in dl:
             x, y, meta = (b.to(dev) for b in batch[:3])
             extra = [b.to(dev) for b in batch[3:]]
-            wq = min(1.0, step / max(1, 2 * len(dl)))
+            wq = args.wq * min(1.0, step / max(1, 2 * len(dl)))
             m, q = model(x)
-            loss, qm = s2_loss(m, q, y, meta, wq, *extra)
+            qw = torch.where(meta[:, 2] > 0, 1.0, args.q_syn_w) if args.q_syn_w != 1.0 else None
+            loss, qm = s2_loss(m, q, y, meta, wq, *extra, qw=qw)
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()
@@ -376,7 +436,7 @@ def predict(args):
     dev = device()
     cfg = json.load(open(os.path.join(RUNS, args.name, "args.json")))
     s1_ch = cfg.get("s1_ch", False)
-    model = build_model(pretrained=False, in_ch=6 if s1_ch else 4).to(dev)
+    model = build_model(pretrained=False, in_ch=6 if s1_ch else 4, qhead=cfg.get("qhead", "aux")).to(dev)
     model.load_state_dict(torch.load(os.path.join(RUNS, args.name, args.ckpt), map_location=dev))
     s1_dir = None
     if s1_ch:  # S1 input maps default to exactly what the model was trained with; override explicitly
@@ -426,5 +486,9 @@ if __name__ == "__main__":
     ap.add_argument("--s1-probs", default=None,
                     help="S1 probability folder for --s1-ch inputs (train default probs_plain; predict default = training's)")
     ap.add_argument("--s1-maps", default=None, help="predict: S1 run providing the input maps (default = training's --s1)")
+    ap.add_argument("--qhead", default="aux", choices=["aux", "mask"], help="aux = smp pooled head; mask = MaskQ head")
+    ap.add_argument("--wq", type=float, default=1.0, help="weight of the q loss (after its warm-up ramp)")
+    ap.add_argument("--q-syn-w", type=float, default=1.0, help="q-loss weight of synthetic (non-proposal) blobs")
+    ap.add_argument("--prop-levels", default=None, help="only sample S1 proposals of these levels, e.g. AP")
     a = ap.parse_args()
     predict(a) if a.predict else train(a)

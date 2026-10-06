@@ -27,14 +27,20 @@ DEFAULT = dict(score="q", thr=0.5, ring=0.0, rel=0.0, lam=0.2, lam_small=0.2, sm
 _K3 = np.ones((3, 3), np.uint8)
 
 
-def load_cands(cdir, stems):
+def load_cands(cdir, stems, extra_dirs=()):
+    """Candidates of one S2 run; with extra_dirs (other S2 runs on the SAME proposals) each candidate's q
+    becomes the mean of the q's that runs gave the same proposal (`idx`) -- a free S2 score ensemble."""
     out = {}
     for s in stems:
         cs = pickle.load(open(os.path.join(cdir, s + ".pkl"), "rb"))
+        extra = [{c["idx"]: c["q"] for c in pickle.load(open(os.path.join(d, s + ".pkl"), "rb"))} for d in extra_dirs]
         for c in cs:
             nz = c["soft"][c["soft"] > 0]
             c["p95"] = float(np.percentile(nz, 95)) / 255 if nz.size else 0.0
             c["_cache"] = {}
+            if extra:
+                qs = [c["q"]] + [e[c["idx"]] for e in extra if c["idx"] in e]
+                c["q_own"], c["q"] = c["q"], float(np.mean(qs))
         out[s] = cs
     return out
 
@@ -185,14 +191,17 @@ def main():
     ap.add_argument("--params", default=None)
     ap.add_argument("--out", default=None)
     ap.add_argument("--val-fold", type=int, default=0)
+    ap.add_argument("--extra-cands", default="", help="comma-separated candidate dirs of other S2 runs on the same "
+                                                       "proposals; their q is averaged in (masks come from --cands)")
     a = ap.parse_args()
+    extra = [d for d in a.extra_cands.split(",") if d]
     stems = sorted(f[:-4] for f in os.listdir(a.cands) if f.endswith(".pkl"))
     P = json.load(open(a.params)) if a.params else dict(DEFAULT)
     if a.mode in ("tune", "eval"):
         meta = load_meta()
         val = set(meta[meta.fold == a.val_fold].file_name.str[:-5])
         assert set(stems) == val, f"candidates cover {len(set(stems) & val)}/{len(val)} val stems"
-        cands = load_cands(a.cands, stems)
+        cands = load_cands(a.cands, stems, extra)
         gt = FastGT(stems)
         if a.mode == "eval":
             print(run_pq(cands, gt, P))
@@ -204,7 +213,7 @@ def main():
         from rle import validate_submission, write_submission
         test_stems = sorted(f.rsplit(".", 1)[0] for f in os.listdir(TEST_IMG) if f.endswith(".jpeg"))
         assert set(stems) == set(test_stems), "candidates must cover every test image"
-        cands = load_cands(a.cands, stems)
+        cands = load_cands(a.cands, stems, extra)
         preds = {}
         for s in stems:
             masks = assemble(cands[s], P)
