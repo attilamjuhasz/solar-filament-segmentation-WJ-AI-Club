@@ -114,6 +114,7 @@ Remaining error anatomy (v2 on val):
 | E3a | S2 with ONLY the q target averaged over readings (`--q-avg`, plain props, 8 ep, `s2_r34_qavg_plain`) | queued (Q2) |
 | SEED | v2 S2 recipe with seed 1 (`s2_r34_seed1`): run-to-run noise baseline + 2-seed q ensemble | queued (Q2) |
 | E2 | S1 40 epochs (`s1_r34_f0_e40`), then existing S2s scored on its proposals | queued (Q2) |
+| P1 | S1 40 epochs, **seed 1** (`s1_r34_f0_e40_s1`), run in PARALLEL with Q2 (user freed the machine): with E2 gives a 2-model S1 probability ensemble | running (`runs/p1.out`) |
 | E4 | S1 fine-tune at 1536 from the best S1 | planned |
 | E5 | 5-fold S1 ensemble + OOF (lets lam be re-derived on 707 stems) | planned |
 | E6 | OOF stacker (gradient boosting on candidate features) | planned |
