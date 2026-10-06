@@ -90,6 +90,23 @@ Remaining error anatomy (v2 on val):
   - About .06 of the gap is unexplained on our side: likely the test annotator pool, plus LB noise (SE ≈ .016 on ~90 images).
 - Ensembling S2 epochs 4 and 8 hurts. Adding S1-only instances where S2 has no candidate is ±0.
 
+## Scorer research (2026-10-06, kaggle-planner; competitor + literature survey)
+- **Noise ceiling.** Two annotator readings of the same candidate agree only at Spearman .49, so a perfect E[y] scorer
+  reaches ≈ .75 Spearman against realised y on the fold-0 mix. We are at .63. The realistic scorer gain is therefore
+  about **+.003–.006 PQ** (perfect ≈ +.01). Bigger levers are S1 (E2, ensembles) and recall.
+- The round-2 "29% annotator noise" figure was biased low (ddof=0). Corrected, about **51%** of single-reading q-target
+  variance is annotator noise, which makes `--q-avg` more valuable than estimated.
+- Built from this:
+  - `--qhead mask` (MaskQ: Mask Scoring R-CNN / GFLv2-DGQP style head fed the detached predicted mask);
+  - `--wq` (q-loss weight; biconcavelens gained LB +.01 from upweighting their confidence loss);
+  - `--q-syn-w`, `--prop-levels`;
+  - `assemble.py --extra-cands`: q-ensemble across S2 runs that share proposals. Zero GPU cost. Needs same-recipe runs:
+    v2 + E1 averaged gave .4525 < .4564, because E1's q is miscalibrated.
+- Competitors:
+  - Anon Tokyo's refiner = the same smp aux head as ours, binary quality target, LB .38.
+  - biconcavelens (LB .40): biggest lever was upweighting the classification loss; all post-hoc rescorers failed.
+- Scripts are in the session scratchpad (`ana/errtype.py`, `ceiling.py`, `context.py`).
+
 ## Experiment queue (scripts/exp/, logs in runs/*.out)
 | Id | What | Status |
 |---|---|---|
