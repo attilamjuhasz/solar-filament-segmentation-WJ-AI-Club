@@ -10,6 +10,7 @@ S2=${S2:-s2_r34}
 
 # 0. caches (rasterized GT, folds, images, disk geometry, stage-1 targets)
 $PY src/prep.py
+$PY src/cache_inst.py
 $PY src/cache_images.py
 $PY src/disk.py
 $PY src/targets.py
