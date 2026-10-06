@@ -2,25 +2,10 @@
 
 Competition facts and environment notes are in `CLAUDE.md`. This file covers the agent team, the current pipeline state, and the improvement loop.
 
-## ⏸ PAUSED (2026-10-02 19:15) — how to resume
-The user paused everything to free the GPU. Nothing is running. State:
-- **Best submission is unchanged:** `submissions/two_stage_v2.csv` (val 0.456, LB 0.37).
-- E1 finished and was rejected (val 0.451). Its outputs are in `runs/s2_r34_tta/`.
-- Queue Q2 was stopped during E3a epoch 1. Not resumable mid-epoch (no optimizer state), so it restarts from scratch.
-  The partial run was moved to `runs/_partial_s2_r34_qavg_plain_ep1/` (safe to delete), and its log to `runs/q2_partial.out`.
-- 1536 caches for E4 are built (`data/cache/img1536`, `fg1536`, `un1536`).
-- `--s1-ch` (S2 with S1 probability input channels) is committed and verified for coordinate exactness.
-  Its code review and the planner's scorer-research round were interrupted. Re-run both on resume.
-
-**Resume** (about 6 h of GPU: E3a ~1 h, seed baseline ~1 h, E2 S1-40ep ~4.5 h):
-```
-nohup bash scripts/exp/q2_after_e1.sh > runs/q2.out 2>&1 &
-```
-Then in Claude: "read AGENTS.md, resume the paused loop". Claude should:
-- re-arm a watcher on `runs/q2.out`;
-- re-launch the code-reviewer on commit 2bc02c7 (`--s1-ch`) and the kaggle-planner on "better keep/reject scorer";
-- restart the `/loop` from the "Improvement loop" section.
-After Q2: train `--s1-ch` S2 on the better S1 (E2 if it wins), then E4 (1536 fine-tune).
+## Status: running (resumed 2026-10-06 18:15, overnight run)
+Queue Q2 restarted (`runs/q2.out`): E3a → SEED → E2. Research agents: radical-researcher, kaggle-planner (scorer), code-reviewer (`--s1-ch`).
+If paused again: kill `q2_after_e1.sh` and `src/s2.py`/`src/s1.py`, then relaunch the queue with `nohup bash scripts/exp/q2_after_e1.sh > runs/q2.out 2>&1 &`
+(a stopped training run restarts from scratch; move its partial `runs/<name>/` aside first).
 
 ## The agent team (`.claude/agents/`)
 | Agent | Use it when | Writes code? |
@@ -28,6 +13,7 @@ After Q2: train `--s1-ch` S2 on the better S1 (E2 if it wins), then E4 (1536 fin
 | `kaggle-planner` | before building a new model or pipeline variant: research + milestone plan | no |
 | `code-reviewer` | after changing `src/`, before trusting a score or uploading | no (reports bugs) |
 | `score-optimizer` | new val predictions/candidates exist, or to check a change really optimizes pooled PQ | no (reports params/snippets) |
+| `radical-researcher` | incremental tuning has plateaued: proposes radical ideas and falsifies them cheaply on CPU first | no (reports tested ideas) |
 
 The main session owns all edits to `src/`. Agents run in the background, CPU-only while the GPU trains. Relay their findings and verify them before adopting.
 Ask for them by name, e.g. "use the code-reviewer agent on src/s2.py".
