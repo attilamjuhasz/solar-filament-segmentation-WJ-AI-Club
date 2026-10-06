@@ -6,3 +6,4 @@ runs/
 __pycache__/
 submissions/
 .claude/settings.local.json
+scripts/local/
