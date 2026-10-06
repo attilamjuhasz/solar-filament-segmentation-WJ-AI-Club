@@ -94,7 +94,11 @@ def make_input(img2048, stem, prior_full, x0, y0, side, s1p=None):
 
 
 def load_s1(s1_dir, stem):
-    return np.load(os.path.join(s1_dir, stem + ".npy"), mmap_mode="r") if s1_dir else None
+    if not s1_dir:
+        return None
+    p = np.load(os.path.join(s1_dir, stem + ".npy"), mmap_mode="r")
+    assert p.dtype == np.uint8 and p.shape[0] == 2, (s1_dir, stem, p.dtype, p.shape)
+    return p
 
 
 def pick_target(prior, inst, areas):
@@ -329,6 +333,7 @@ def train(args):
     os.makedirs(out_dir, exist_ok=True)
     tr, va, readings = split(args.val_fold)
     props_dir = os.path.join(RUNS, args.s1, "props_" + args.props)
+    args.s1_probs = args.s1_probs or "probs_plain"  # resolved value is recorded in args.json
     s1_dir = os.path.join(RUNS, args.s1, args.s1_probs) if args.s1_ch else None
     ds = S2Train(tr, readings, props_dir, args.samples, p_prop=args.p_prop, seed=args.seed, q_avg=args.q_avg,
                  s1_dir=s1_dir)
@@ -369,15 +374,24 @@ def train(args):
 
 def predict(args):
     dev = device()
-    s1_ch = json.load(open(os.path.join(RUNS, args.name, "args.json"))).get("s1_ch", False)
+    cfg = json.load(open(os.path.join(RUNS, args.name, "args.json")))
+    s1_ch = cfg.get("s1_ch", False)
     model = build_model(pretrained=False, in_ch=6 if s1_ch else 4).to(dev)
     model.load_state_dict(torch.load(os.path.join(RUNS, args.name, args.ckpt), map_location=dev))
-    s1_dir = os.path.join(RUNS, args.s1, args.s1_probs) if s1_ch else None
+    s1_dir = None
+    if s1_ch:  # S1 input maps default to exactly what the model was trained with; override explicitly
+        s1_dir = os.path.join(RUNS, args.s1_maps or cfg["s1"], args.s1_probs or cfg.get("s1_probs", "probs_plain"))
+        print("S1 input maps:", s1_dir, flush=True)
     props_dir = os.path.join(RUNS, args.s1, "props_" + args.props)
     tr, va, _ = split(args.val_fold)
     test = sorted(f[:-4] for f in os.listdir(os.path.join(CACHE, "img1024"))
                   if f.endswith(".npy") and f[:-4] not in set(tr) | set(va))
     stems = {"val": va, "test": test}[args.predict]
+    if s1_dir:
+        missing = [s for s in stems if not os.path.exists(os.path.join(s1_dir, s + ".npy"))]
+        if missing:
+            raise SystemExit(f"{len(missing)} {args.predict} stems lack S1 maps in {s1_dir} "
+                             f"(e.g. {missing[0]}); run src/s1.py --predict {args.predict} for that S1 first")
     odir = os.path.join(RUNS, args.name, f"cands_{args.predict}_{args.props}_{args.ckpt[:-3]}{args.tag}")
     os.makedirs(odir, exist_ok=True)
     t0 = time.time()
@@ -409,6 +423,8 @@ if __name__ == "__main__":
     ap.add_argument("--q-avg", action="store_true", help="q label averaged over all annotator readings")
     ap.add_argument("--tag", default="", help="suffix for the candidates folder (e.g. which S1 made the proposals)")
     ap.add_argument("--s1-ch", action="store_true", help="add S1 precise/union probability crops as input channels")
-    ap.add_argument("--s1-probs", default="probs_plain", help="S1 probability folder used for --s1-ch inputs")
+    ap.add_argument("--s1-probs", default=None,
+                    help="S1 probability folder for --s1-ch inputs (train default probs_plain; predict default = training's)")
+    ap.add_argument("--s1-maps", default=None, help="predict: S1 run providing the input maps (default = training's --s1)")
     a = ap.parse_args()
     predict(a) if a.predict else train(a)
