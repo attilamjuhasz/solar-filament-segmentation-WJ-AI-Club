@@ -29,17 +29,22 @@ _K3 = np.ones((3, 3), np.uint8)
 
 def load_cands(cdir, stems, extra_dirs=()):
     """Candidates of one S2 run; with extra_dirs (other S2 runs on the SAME proposals) each candidate's q
-    becomes the mean of the q's that runs gave the same proposal (`idx`) -- a free S2 score ensemble."""
+    becomes the mean of the q's that runs gave the same proposal (`idx`) -- a free S2 score ensemble.
+    A run that dropped a proposal (empty mask) is simply left out of that candidate's mean."""
     out = {}
     for s in stems:
         cs = pickle.load(open(os.path.join(cdir, s + ".pkl"), "rb"))
-        extra = [{c["idx"]: c["q"] for c in pickle.load(open(os.path.join(d, s + ".pkl"), "rb"))} for d in extra_dirs]
+        extra = [{c["idx"]: c for c in pickle.load(open(os.path.join(d, s + ".pkl"), "rb"))} for d in extra_dirs]
         for c in cs:
             nz = c["soft"][c["soft"] > 0]
             c["p95"] = float(np.percentile(nz, 95)) / 255 if nz.size else 0.0
             c["_cache"] = {}
             if extra:
-                qs = [c["q"]] + [e[c["idx"]] for e in extra if c["idx"] in e]
+                for e, d in zip(extra, extra_dirs):  # same proposal <=> same proposal-level fields
+                    o = e.get(c["idx"])
+                    assert o is None or (o["level"], o["peak_u"], o["mean_p"]) == (c["level"], c["peak_u"], c["mean_p"]), \
+                        f"{d} was made from different proposals ({s}, idx {c['idx']})"
+                qs = [c["q"]] + [e[c["idx"]]["q"] for e in extra if c["idx"] in e]
                 c["q_own"], c["q"] = c["q"], float(np.mean(qs))
         out[s] = cs
     return out

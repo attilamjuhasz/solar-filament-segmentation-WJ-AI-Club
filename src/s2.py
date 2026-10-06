@@ -39,7 +39,8 @@ class MaskQ(nn.Module):
     """Mask-aware quality head: encoder features + the DETACHED predicted mask + the prior (+ S1 channels).
 
     Mask-pooled deep features, a small conv over [stride-16 features, max-pooled mask, prior] and cheap mask
-    statistics -> one logit for E[IoU * 1(IoU > .5)]. Gradients never flow back into the mask path.
+    statistics -> one logit for E[IoU * 1(IoU > .5)]. The mask input is detached, so the q loss never reaches the
+    decoder/segmentation head; it does train the shared encoder (like the aux head), scaled by --wq.
     """
 
     def __init__(self, n_extra=0):
@@ -63,7 +64,8 @@ class MaskQ(nn.Module):
         h = (p > 0.5).float()
         ha = h.sum((2, 3)).clamp(min=1)
         edge = torch.cat([h[..., 0, :], h[..., -1, :], h[..., :, 0], h[..., :, -1]], -1).amax(-1)
-        st = torch.cat([torch.log1p(ha) / 10, (p * h).sum((2, 3)) / ha, ((p > 0.3) & (p < 0.7)).float().sum((2, 3)) / ha,
+        unsure = (((p > 0.3) & (p < 0.7)).float().sum((2, 3)) / ha).clamp(max=4.0)  # bounded when the mask is empty
+        st = torch.cat([torch.log1p(ha) / 10, (p * h).sum((2, 3)) / ha, unsure,
                         edge, (h * pr).sum((2, 3)) / pr.sum((2, 3)).clamp(min=1), (h * pr).sum((2, 3)) / ha], 1)
         return self.mlp(torch.cat([f[5].mean((2, 3)), mpool(f[5], a8), mpool(f[4], a16), mpool(f[4], ring16), c, st], 1))
 
@@ -394,6 +396,7 @@ def train(args):
     props_dir = os.path.join(RUNS, args.s1, "props_" + args.props)
     args.s1_probs = args.s1_probs or "probs_plain"  # resolved value is recorded in args.json
     s1_dir = os.path.join(RUNS, args.s1, args.s1_probs) if args.s1_ch else None
+    assert not args.prop_levels or set(args.prop_levels) <= set("APBC"), f"bad --prop-levels {args.prop_levels}"
     ds = S2Train(tr, readings, props_dir, args.samples, p_prop=args.p_prop, seed=args.seed, q_avg=args.q_avg,
                  s1_dir=s1_dir, levels=args.prop_levels, flag_prop=args.q_syn_w != 1.0)
     extra = dict(persistent_workers=True, prefetch_factor=4) if args.workers > 0 else {}
