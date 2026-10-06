@@ -1,0 +1,72 @@
+=== val stems with >=1 labelled neighbour by max hours
+  <=  1 h: 4 stems (of which with an other-fold neighbour: 0)
+  <=  6 h: 12 stems (of which with an other-fold neighbour: 0)
+  <= 12 h: 21 stems (of which with an other-fold neighbour: 4)
+  <= 24 h: 42 stems (of which with an other-fold neighbour: 28)
+  <= 48 h: 83 stems (of which with an other-fold neighbour: 76)
+=== target GT instances: best IoU with warped neighbour GT (nearest labelled neighbour per bin)
+  dt  0- 1h: n=  27 IoU>.5 0.185  IoU>.3 0.481  cov3px>.5 0.630  median IoU 0.282
+  dt  1- 6h: n= 101 IoU>.5 0.119  IoU>.3 0.337  cov3px>.5 0.525  median IoU 0.167
+  dt  6-12h: n= 106 IoU>.5 0.085  IoU>.3 0.462  cov3px>.5 0.726  median IoU 0.295
+  dt 12-24h: n= 282 IoU>.5 0.025  IoU>.3 0.191  cov3px>.5 0.415  median IoU 0.105
+  dt 24-48h: n= 723 IoU>.5 0.006  IoU>.3 0.112  cov3px>.5 0.317  median IoU 0.021
+=== direct transfer PQ (warped neighbour reading as prediction vs target reading)
+  dt  0- 1h PQ=0.0849 tp=6 fp=34 fn=34 sq=0.566
+  dt  1- 6h PQ=0.0574 tp=14 fp=117 fn=117 sq=0.537
+  dt  6-12h PQ=0.0324 tp=9 fp=164 fn=140 sq=0.580
+  dt 12-24h PQ=0.0108 tp=7 fp=368 fn=339 sq=0.557
+  dt 24-48h PQ=0.0016 tp=4 fp=1348 fn=1412 sq=0.570
+=== candidate-level: does the neighbour feature separate y (A/P candidates)?
+  h<=12 match3: n=437 rho(F,y)=0.287 rho(Q,y)=0.546 rho(Q+0.3F,y)=0.501 | near-margin n=145 rho(F,y)=-0.077 rho(Q,y)=0.102
+  h<=12 cov: n=437 rho(F,y)=0.190 rho(Q,y)=0.546 rho(Q+0.3F,y)=0.467 | near-margin n=145 rho(F,y)=-0.185 rho(Q,y)=0.102
+  h<=24 match3: n=848 rho(F,y)=0.264 rho(Q,y)=0.580 rho(Q+0.3F,y)=0.543 | near-margin n=318 rho(F,y)=0.044 rho(Q,y)=0.260
+  h<=24 cov: n=848 rho(F,y)=0.180 rho(Q,y)=0.580 rho(Q+0.3F,y)=0.501 | near-margin n=318 rho(F,y)=-0.095 rho(Q,y)=0.260
+  h<=48 match3: n=1851 rho(F,y)=0.207 rho(Q,y)=0.617 rho(Q+0.3F,y)=0.583 | near-margin n=700 rho(F,y)=0.057 rho(Q,y)=0.256
+  h<=48 cov: n=1851 rho(F,y)=0.176 rho(Q,y)=0.617 rho(Q+0.3F,y)=0.540 | near-margin n=700 rho(F,y)=-0.054 rho(Q,y)=0.256
+=== assembly with neighbour-label feature (stems with a labelled neighbour <= h)
+ h<=12: 21 stems, 32 readings
+  v2 q*mean_p                                                  A=0.4766 B=0.3846 all=0.4334 tp=133 fp=59 fn=84 sq=0.666
+  qmp*(1-b+2bF) match3 b=0.1                                   A=0.4746 B=0.3826 all=0.4319 tp=130 fp=54 fn=87 sq=0.666
+  qmp*(1-b+2bF) match3 b=0.2                                   A=0.4746 B=0.3847 all=0.4330 tp=130 fp=53 fn=87 sq=0.666
+  qmp*(1-b+2bF) match3 b=0.3                                   A=0.4535 B=0.3588 all=0.4087 tp=118 fp=52 fn=99 sq=0.670
+  qmp*(1-b+2bF) match3 b=0.5                                   A=0.4143 B=0.2833 all=0.3538 tp=90 fp=35 fn=127 sq=0.672
+  qmp*(1-b+2bF) cov b=0.1                                      A=0.4786 B=0.3867 all=0.4355 tp=133 fp=57 fn=84 sq=0.666
+  qmp*(1-b+2bF) cov b=0.2                                      A=0.4720 B=0.3858 all=0.4317 tp=132 fp=59 fn=85 sq=0.667
+  qmp*(1-b+2bF) cov b=0.3                                      A=0.4595 B=0.3649 all=0.4147 tp=124 fp=60 fn=93 sq=0.671
+  qmp*(1-b+2bF) cov b=0.5                                      A=0.4486 B=0.3378 all=0.3965 tp=114 fp=54 fn=103 sq=0.670
+ h<=24: 42 stems, 67 readings
+  v2 q*mean_p                                                  A=0.4528 B=0.4190 all=0.4361 tp=297 fp=134 fn=180 sq=0.667
+  qmp*(1-b+2bF) match3 b=0.1                                   A=0.4528 B=0.4172 all=0.4353 tp=291 fp=124 fn=186 sq=0.667
+  qmp*(1-b+2bF) match3 b=0.2                                   A=0.4531 B=0.4115 all=0.4327 tp=284 fp=115 fn=193 sq=0.667
+  qmp*(1-b+2bF) match3 b=0.3                                   A=0.4378 B=0.3958 all=0.4169 tp=260 fp=101 fn=217 sq=0.672
+  qmp*(1-b+2bF) match3 b=0.5                                   A=0.3826 B=0.2988 all=0.3427 tp=180 fp=54 fn=297 sq=0.677
+  qmp*(1-b+2bF) cov b=0.1                                      A=0.4527 B=0.4185 all=0.4359 tp=293 fp=128 fn=184 sq=0.668
+  qmp*(1-b+2bF) cov b=0.2                                      A=0.4479 B=0.4137 all=0.4311 tp=287 fp=126 fn=190 sq=0.668
+  qmp*(1-b+2bF) cov b=0.3                                      A=0.4382 B=0.4045 all=0.4214 tp=273 fp=121 fn=204 sq=0.672
+  qmp*(1-b+2bF) cov b=0.5                                      A=0.4143 B=0.3588 all=0.3875 tp=237 fp=107 fn=240 sq=0.671
+ h<=48: 83 stems, 133 readings
+  v2 q*mean_p                                                  A=0.4502 B=0.4442 all=0.4472 tp=665 fp=312 fn=362 sq=0.674
+  qmp*(1-b+2bF) match3 b=0.1                                   A=0.4454 B=0.4415 all=0.4434 tp=646 fp=292 fn=381 sq=0.674
+  qmp*(1-b+2bF) match3 b=0.2                                   A=0.4439 B=0.4360 all=0.4400 tp=628 fp=271 fn=399 sq=0.675
+  qmp*(1-b+2bF) match3 b=0.3                                   A=0.4326 B=0.4231 all=0.4278 tp=569 fp=215 fn=458 sq=0.681
+  qmp*(1-b+2bF) match3 b=0.5                                   A=0.3703 B=0.3269 all=0.3490 tp=384 fp=106 fn=643 sq=0.689
+  qmp*(1-b+2bF) cov b=0.1                                      A=0.4468 B=0.4420 all=0.4444 tp=650 fp=296 fn=377 sq=0.674
+  qmp*(1-b+2bF) cov b=0.2                                      A=0.4422 B=0.4404 all=0.4413 tp=638 fp=286 fn=389 sq=0.675
+  qmp*(1-b+2bF) cov b=0.3                                      A=0.4345 B=0.4318 all=0.4331 tp=600 fp=255 fn=427 sq=0.679
+  qmp*(1-b+2bF) cov b=0.5                                      A=0.4006 B=0.3848 all=0.3928 tp=498 fp=201 fn=529 sq=0.681
+=== assembly with neighbour S1 (out-of-sample val/test neighbours)
+ h<=6: 15 stems
+  v2 q*mean_p                                                  A=0.3542 B=0.3945 all=0.3847 tp=85 fp=39 fn=82 sq=0.658
+  q*((1-w)mean_p + w*nbr_mean_p) w=0.2                         A=0.3431 B=0.3931 all=0.3809 tp=83 fp=37 fn=84 sq=0.659
+  q*((1-w)mean_p + w*nbr_mean_p) w=0.35                        A=0.3054 B=0.3658 all=0.3510 tp=73 fp=34 fn=94 sq=0.659
+  q*((1-w)mean_p + w*nbr_mean_p) w=0.5                         A=0.3051 B=0.3201 all=0.3163 tp=64 fp=34 fn=103 sq=0.655
+ h<=24: 26 stems
+  v2 q*mean_p                                                  A=0.4456 B=0.4230 all=0.4326 tp=188 fp=83 fn=123 sq=0.670
+  q*((1-w)mean_p + w*nbr_mean_p) w=0.2                         A=0.4389 B=0.4236 all=0.4301 tp=185 fp=80 fn=126 sq=0.670
+  q*((1-w)mean_p + w*nbr_mean_p) w=0.35                        A=0.4254 B=0.4061 all=0.4143 tp=171 fp=73 fn=140 sq=0.672
+  q*((1-w)mean_p + w*nbr_mean_p) w=0.5                         A=0.4218 B=0.3758 all=0.3958 tp=159 fp=68 fn=152 sq=0.670
+ h<=48: 40 stems
+  v2 q*mean_p                                                  A=0.4728 B=0.4346 all=0.4545 tp=341 fp=134 fn=200 sq=0.677
+  q*((1-w)mean_p + w*nbr_mean_p) w=0.2                         A=0.4676 B=0.4365 all=0.4528 tp=335 fp=128 fn=206 sq=0.678
+  q*((1-w)mean_p + w*nbr_mean_p) w=0.35                        A=0.4485 B=0.4097 all=0.4298 tp=299 fp=108 fn=242 sq=0.681
+  q*((1-w)mean_p + w*nbr_mean_p) w=0.5                         A=0.4109 B=0.3658 all=0.3893 tp=256 fp=96 fn=285 sq=0.679

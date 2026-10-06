@@ -1,0 +1,30 @@
+evaluating on 44 stems
+mean_p/props mismatch: 0
+0 20110109104734Ch 5
+20 20120227161654Bh 3
+40 20130404063134Lh 6
+stems with archive neighbours: 44/44
+=== S1-only postprocess
+  TTA only (baseline)                           A=0.3991 B=0.4415 all=0.4179 tp=337 fp=196 fn=196 sq=0.661
+  plain only                                    A=0.3882 B=0.4173 all=0.4012 tp=322 fp=207 fn=211 sq=0.662
+  ONE same-site nbr alone (plain, warped)       A=0.3652 B=0.3245 all=0.3466 tp=286 fp=257 fn=247 sq=0.652
+  plain + same-site nbrs (w=.5)                 A=0.3853 B=0.4061 all=0.3946 tp=317 fp=213 fn=216 sq=0.662
+  plain + all nbrs (w=.5)                       A=0.3779 B=0.4158 all=0.3948 tp=320 fp=216 fn=213 sq=0.659
+  plain + all nbrs (w=.8 ~ equal weights)       A=0.3397 B=0.3728 all=0.3545 tp=286 fp=238 fn=247 sq=0.655
+  TTA + same-site nbrs (w=.3)                   A=0.4038 B=0.4315 all=0.4162 tp=330 fp=189 fn=203 sq=0.663
+  TTA + same-site nbrs (w=.5)                   A=0.3989 B=0.4205 all=0.4087 tp=325 fp=194 fn=208 sq=0.661
+  TTA + all nbrs (w=.3)                         A=0.3976 B=0.4385 all=0.4159 tp=331 fp=191 fn=202 sq=0.663
+  TTA + all nbrs (w=.5)                         A=0.3764 B=0.4265 all=0.3989 tp=317 fp=206 fn=216 sq=0.664
+  TTA + all nbrs (w=.7)                         A=0.3579 B=0.3873 all=0.3711 tp=301 fp=234 fn=232 sq=0.658
+=== v2 (q x fused mean_p)
+  TTA only (baseline)                           A=0.4412 B=0.4836 all=0.4597 tp=346 fp=135 fn=187 sq=0.674
+  plain only                                    A=0.4278 B=0.4788 all=0.4500 tp=340 fp=146 fn=193 sq=0.674
+  ONE same-site nbr alone (plain, warped)       A=0.4256 B=0.4625 all=0.4415 tp=321 fp=127 fn=212 sq=0.675
+  plain + same-site nbrs (w=.5)                 A=0.4250 B=0.4728 all=0.4459 tp=330 fp=137 fn=203 sq=0.676
+  plain + all nbrs (w=.5)                       A=0.4287 B=0.4737 all=0.4485 tp=326 fp=122 fn=207 sq=0.675
+  plain + all nbrs (w=.8 ~ equal weights)       A=0.4271 B=0.4741 all=0.4478 tp=316 fp=106 fn=217 sq=0.677
+  TTA + same-site nbrs (w=.3)                   A=0.4404 B=0.4818 all=0.4586 tp=342 fp=129 fn=191 sq=0.673
+  TTA + same-site nbrs (w=.5)                   A=0.4350 B=0.4703 all=0.4503 tp=333 fp=132 fn=200 sq=0.675
+  TTA + all nbrs (w=.3)                         A=0.4407 B=0.4787 all=0.4575 tp=337 fp=122 fn=196 sq=0.673
+  TTA + all nbrs (w=.5)                         A=0.4351 B=0.4798 all=0.4549 tp=330 fp=115 fn=203 sq=0.674
+  TTA + all nbrs (w=.7)                         A=0.4328 B=0.4796 all=0.4535 tp=323 fp=105 fn=210 sq=0.675

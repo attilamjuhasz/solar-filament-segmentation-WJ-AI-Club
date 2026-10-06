@@ -1,0 +1,28 @@
+=== full val (141 stems), model score q*mean_p ===
+v2 greedy (sanity: should be ~.456)                                lam=0.225 A=0.4540 B=0.4591 all=0.4564 tp=1103 fp=483 fn=584 sq=0.677
+MWIS on q*mean_p (raw)                                             lam=0.225 A=0.4543 B=0.4576 all=0.4559 tp=1101 fp=484 fn=586 sq=0.677
+=== realized-y oracle (full val) ===
+oracle realized y greedy [it0]                                     lam=0.228 A=0.5343 B=0.5423 all=0.5382 tp=1232 fp=179 fn=455 sq=0.677
+oracle realized y greedy [it1]                                     lam=0.269 A=0.5352 B=0.5432 all=0.5390 tp=1207 fp=138 fn=480 sq=0.677
+oracle realized y MWIS [it0]                                       lam=0.228 A=0.5343 B=0.5423 all=0.5382 tp=1232 fp=179 fn=455 sq=0.677
+oracle realized y MWIS [it1]                                       lam=0.269 A=0.5352 B=0.5432 all=0.5390 tp=1207 fp=138 fn=480 sq=0.677
+oracle realized y MWIS + extent {.3..7} [it0]                      lam=0.228 A=0.5483 B=0.5563 all=0.5521 tp=1270 fp=187 fn=417 sq=0.683
+oracle realized y MWIS + extent {.3..7} [it1]                      lam=0.276 A=0.5497 B=0.5579 all=0.5536 tp=1238 fp=134 fn=449 sq=0.684
+=== multi-reading stems only (60 stems, 151 readings) ===
+v2 model greedy                                                    lam=0.225 A=0.4492 B=0.4580 all=0.4533 tp=701 fp=337 fn=350 sq=0.675
+v2 model MWIS                                                      lam=0.225 A=0.4492 B=0.4580 all=0.4533 tp=701 fp=337 fn=350 sq=0.675
+realized oracle greedy [it0]                                       lam=0.228 A=0.5085 B=0.5154 all=0.5117 tp=750 fp=179 fn=301 sq=0.675
+realized oracle greedy [it1]                                       lam=0.256 A=0.5091 B=0.5161 all=0.5123 tp=734 fp=151 fn=317 sq=0.676
+LOO-annotator oracle greedy (thr .5) [it0]                         lam=0.228 A=0.4364 B=0.4459 all=0.4408 tp=644 fp=278 fn=407 sq=0.675
+LOO-annotator oracle greedy (thr .5) [it1]                         lam=0.220 A=0.4364 B=0.4459 all=0.4408 tp=644 fp=278 fn=407 sq=0.675
+LOO-annotator oracle MWIS (thr .5) [it0]                           lam=0.228 A=0.4364 B=0.4459 all=0.4408 tp=644 fp=278 fn=407 sq=0.675
+LOO-annotator oracle MWIS (thr .5) [it1]                           lam=0.220 A=0.4364 B=0.4459 all=0.4408 tp=644 fp=278 fn=407 sq=0.675
+LOO-annotator oracle greedy + extent [it0]                         lam=0.228 A=0.4340 B=0.4470 all=0.4400 tp=650 fp=295 fn=401 sq=0.676
+LOO-annotator oracle greedy + extent [it1]                         lam=0.220 A=0.4340 B=0.4470 all=0.4400 tp=650 fp=295 fn=401 sq=0.676
+LOO-annotator oracle MWIS + extent [it0]                           lam=0.228 A=0.4340 B=0.4470 all=0.4400 tp=650 fp=295 fn=401 sq=0.676
+LOO-annotator oracle MWIS + extent [it1]                           lam=0.220 A=0.4340 B=0.4470 all=0.4400 tp=650 fp=295 fn=401 sq=0.676
+blend 0.25*LOO + 0.75*model greedy [it0]                           lam=0.228 A=0.4468 B=0.4602 all=0.4530 tp=693 fp=322 fn=358 sq=0.675
+blend 0.5*LOO + 0.5*model greedy [it0]                             lam=0.228 A=0.4432 B=0.4515 all=0.4470 tp=649 fp=263 fn=402 sq=0.676
+blend 0.5*LOO + 0.5*model greedy [it1]                             lam=0.224 A=0.4442 B=0.4515 all=0.4476 tp=650 fp=263 fn=401 sq=0.676
+blend 0.75*LOO + 0.25*model greedy [it0]                           lam=0.228 A=0.4369 B=0.4435 all=0.4400 tp=639 fp=274 fn=412 sq=0.676
+blend 0.75*LOO + 0.25*model greedy [it1]                           lam=0.220 A=0.4353 B=0.4444 all=0.4395 tp=640 fp=278 fn=411 sq=0.676

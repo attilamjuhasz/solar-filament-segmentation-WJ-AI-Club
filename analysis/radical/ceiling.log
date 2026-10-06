@@ -1,0 +1,23 @@
+296 multi-reading stems
+0
+50
+100
+150
+200
+250
+trn n=2 P1 single other annotator                               PQ=0.3586 tp=872 fp=675 fn=675 sq=0.636
+trn n=3 P1 single other annotator                               PQ=0.3356 tp=2548 fp=2242 fn=2242 sq=0.631
+trn n=3 P2 consensus + all singles (union of drawings)          PQ=0.3347 tp=1396 fp=1456 fn=999 sq=0.629
+trn n=3 P2 consensus(o1 mask) + o1 singles (= o1)               PQ=0.3362 tp=1275 fp=1101 fn=1120 sq=0.629
+trn n=3 P2 consensus-only (inter mask)                          PQ=0.3106 tp=886 fp=388 fn=1509 sq=0.643
+trn n=3 P2 consensus-only (o1 mask)                             PQ=0.3275 tp=940 fp=334 fn=1455 sq=0.639
+trn n=3 P2 consensus-only (o1|o2 larger mask)                   PQ=0.3232 tp=927 fp=347 fn=1468 sq=0.640
+trn n=3 P2 consensus-only (union mask)                          PQ=0.3289 tp=931 fp=343 fn=1464 sq=0.648
+val n=2 P1 single other annotator                               PQ=0.3631 tp=246 fp=194 fn=194 sq=0.649
+val n=3 P1 single other annotator                               PQ=0.3231 tp=622 fp=600 fn=600 sq=0.635
+val n=3 P2 consensus + all singles (union of drawings)          PQ=0.3062 tp=322 fp=395 fn=289 sq=0.631
+val n=3 P2 consensus(o1 mask) + o1 singles (= o1)               PQ=0.3061 tp=299 fp=333 fn=312 sq=0.636
+val n=3 P2 consensus-only (inter mask)                          PQ=0.3029 tp=214 fp=97 fn=397 sq=0.653
+val n=3 P2 consensus-only (o1 mask)                             PQ=0.3178 tp=224 fp=87 fn=387 sq=0.654
+val n=3 P2 consensus-only (o1|o2 larger mask)                   PQ=0.3181 tp=224 fp=87 fn=387 sq=0.655
+val n=3 P2 consensus-only (union mask)                          PQ=0.3124 tp=217 fp=94 fn=394 sq=0.664

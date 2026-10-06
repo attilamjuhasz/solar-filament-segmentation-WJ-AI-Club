@@ -1,0 +1,38 @@
+--- 3-reading stems (31 stems, 93 readings), lam 0.2
+model q*mean_p                                                     lam=0.200 PQ=0.4377 tp=411 fp=240 fn=200 sq=0.672
+1 other annotator (avg over which)                                 lam=0.200 PQ=0.4104 tp=647 fp=265 fn=575 sq=0.677
+2 other annotators (mean y)                                        lam=0.200 PQ=0.4341 tp=385 fp=195 fn=226 sq=0.671
+   extrapolated PQ(inf annotators) = 2*P2 - P1 = 0.4577
+blend 0.2*1-other + model                                          lam=0.200 PQ=0.4352 tp=403 fp=230 fn=208 sq=0.672
+blend 0.2*2-others + model                                         lam=0.200 PQ=0.4357 tp=403 fp=229 fn=208 sq=0.672
+blend 0.35*1-other + model                                         lam=0.200 PQ=0.4336 tp=394 fp=219 fn=217 sq=0.673
+blend 0.35*2-others + model                                        lam=0.200 PQ=0.4378 tp=402 fp=221 fn=209 sq=0.672
+blend 0.5*1-other + model                                          lam=0.200 PQ=0.4332 tp=369 fp=171 fn=242 sq=0.676
+blend 0.5*2-others + model                                         lam=0.200 PQ=0.4423 tp=393 fp=191 fn=218 sq=0.672
+--- 3-reading stems (31 stems, 93 readings), lam 0.228
+model q*mean_p                                                     lam=0.228 PQ=0.4409 tp=400 fp=209 fn=211 sq=0.672
+1 other annotator (avg over which)                                 lam=0.228 PQ=0.4104 tp=647 fp=265 fn=575 sq=0.677
+2 other annotators (mean y)                                        lam=0.228 PQ=0.4341 tp=385 fp=195 fn=226 sq=0.671
+   extrapolated PQ(inf annotators) = 2*P2 - P1 = 0.4577
+blend 0.2*1-other + model                                          lam=0.228 PQ=0.4389 tp=395 fp=205 fn=216 sq=0.673
+blend 0.2*2-others + model                                         lam=0.228 PQ=0.4406 tp=397 fp=205 fn=214 sq=0.673
+blend 0.35*1-other + model                                         lam=0.228 PQ=0.4368 tp=382 fp=187 fn=229 sq=0.675
+blend 0.35*2-others + model                                        lam=0.228 PQ=0.4448 tp=390 fp=179 fn=221 sq=0.673
+blend 0.5*1-other + model                                          lam=0.228 PQ=0.4189 tp=344 fp=154 fn=267 sq=0.675
+blend 0.5*2-others + model                                         lam=0.228 PQ=0.4418 tp=382 fp=170 fn=229 sq=0.673
+--- 3-reading stems (31 stems, 93 readings), lam 0.26
+model q*mean_p                                                     lam=0.260 PQ=0.4413 tp=389 fp=187 fn=222 sq=0.673
+1 other annotator (avg over which)                                 lam=0.260 PQ=0.4104 tp=647 fp=265 fn=575 sq=0.677
+2 other annotators (mean y)                                        lam=0.260 PQ=0.4337 tp=380 fp=187 fn=231 sq=0.672
+   extrapolated PQ(inf annotators) = 2*P2 - P1 = 0.4569
+blend 0.2*1-other + model                                          lam=0.260 PQ=0.4434 tp=386 fp=177 fn=225 sq=0.674
+blend 0.2*2-others + model                                         lam=0.260 PQ=0.4451 tp=387 fp=173 fn=224 sq=0.673
+blend 0.35*1-other + model                                         lam=0.260 PQ=0.4365 tp=366 fp=157 fn=245 sq=0.676
+blend 0.35*2-others + model                                        lam=0.260 PQ=0.4427 tp=377 fp=161 fn=234 sq=0.675
+blend 0.5*1-other + model                                          lam=0.260 PQ=0.4046 tp=326 fp=151 fn=285 sq=0.675
+blend 0.5*2-others + model                                         lam=0.260 PQ=0.4355 tp=365 fp=155 fn=246 sq=0.675
+--- 2-reading stems (29)
+model                                                              lam=0.228 PQ=0.4704 tp=297 fp=121 fn=143 sq=0.679
+1 other annotator                                                  lam=0.228 PQ=0.4511 tp=259 fp=83 fn=181 sq=0.681
+blend 0.2*1-other + model                                          lam=0.228 PQ=0.4697 tp=297 fp=123 fn=143 sq=0.680
+blend 0.35*1-other + model                                         lam=0.228 PQ=0.4631 tp=284 fp=110 fn=156 sq=0.680

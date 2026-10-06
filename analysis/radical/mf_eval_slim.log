@@ -1,0 +1,19 @@
+evaluating on 109 stems
+mean_p/props mismatch: 0
+0 20110109104734Ch 5
+20 20120227161654Bh 3
+40 20130404063134Lh 6
+60 20140428233234Lh 5
+80 20150427162314Mh 5
+100 20160617133654Bh 6
+stems with archive neighbours: 109/109
+=== S1-only postprocess
+  TTA only (baseline)                           A=0.4195 B=0.4350 all=0.4271 tp=974 fp=572 fn=522 sq=0.667
+  TTA + same-site nbrs (w=.3)                   A=0.4192 B=0.4355 all=0.4272 tp=967 fp=559 fn=529 sq=0.668
+  TTA + all nbrs (w=.3)                         A=0.4174 B=0.4377 all=0.4274 tp=965 fp=557 fn=531 sq=0.668
+  TTA + all nbrs (w=.5)                         A=0.4064 B=0.4319 all=0.4189 tp=948 fp=578 fn=548 sq=0.668
+=== v2 (q x fused mean_p)
+  TTA only (baseline)                           A=0.4479 B=0.4660 all=0.4566 tp=978 fp=432 fn=518 sq=0.678
+  TTA + same-site nbrs (w=.3)                   A=0.4456 B=0.4642 all=0.4546 tp=969 fp=426 fn=527 sq=0.678
+  TTA + all nbrs (w=.3)                         A=0.4437 B=0.4613 all=0.4522 tp=951 fp=408 fn=545 sq=0.679
+  TTA + all nbrs (w=.5)                         A=0.4403 B=0.4605 all=0.4501 tp=925 fp=375 fn=571 sq=0.680

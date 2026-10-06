@@ -107,6 +107,15 @@ Remaining error anatomy (v2 on val):
   - biconcavelens (LB .40): biggest lever was upweighting the classification loss; all post-hoc rescorers failed.
 - Scripts are in the session scratchpad (`ana/errtype.py`, `ceiling.py`, `context.py`).
 
+## Radical-researcher findings (2026-10-06; scripts in analysis/radical/) — all radical ideas KILLED
+- **Expected-PQ decoding gives nothing.** Every kept mask adds exactly +0.5 per reading to the denominator, so "keep iff E[y] > PQ/2" (v2's gate) is optimal. An exact max-weight independent set over overlapping candidates scores .4559 vs greedy .4564. Choosing mask extent per candidate gains nothing either.
+- **Annotator-noise ceiling.** Scoring candidates with OTHER annotators' real verdicts (leave-one-reading-out) gives .4408 < model .4533. The ceiling with infinitely many annotators is ≈ +.017 over v2. Max Spearman ≈ .68.
+  **The model already predicts a random annotator better than another human does** (human vs human PQ .32–.36).
+- **Temporal / cross-site neighbours are negative.** Images are solar-north-up and P-corrected, with east on the left; differential rotation was verified. Labels are frame-specific (seeing), so warped neighbour GT gives PQ ≤ .085, and every score feature built from it lowered PQ.
+- **Multi-frame TTA from the public GONG archive is negative.** Kaggle JPEGs = gong2.nso.edu/HA/hag archive frames with overlays removed. A frame 1 min later scores .338 vs .400 S1-only, and fusion is ±0 or worse.
+- **Direction:** spend GPU on variance reduction that preserves geometry (S1 seed/fold ensembles, like D4 TTA's +.016) and on candidate quality (E2, E4, E5, E7). Scorer/decoder research is near its ceiling.
+- **v2 PQ by annotator group ranges .42–.51.** The unknown test annotator mix likely explains part of the val→LB gap, and that part can't be fixed by modelling.
+
 ## Experiment queue (scripts/exp/, logs in runs/*.out)
 | Id | What | Status |
 |---|---|---|
