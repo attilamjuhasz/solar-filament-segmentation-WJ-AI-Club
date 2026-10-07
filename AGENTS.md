@@ -57,7 +57,8 @@ Caches are in `data/cache/`. Rebuild everything with `bash scripts/run_pipeline.
 | Date | Submission | Val PQ | Public LB |
 |---|---|---|---|
 | 2026-10-01 | `s1_only.csv`: S1 + tuned postprocess | 0.426 | 0.35 |
-| 2026-10-01 | `two_stage_v2.csv`: S1 + S2 classifier, q×mean_p, lam .225 | 0.456 (split-half .454/.459) | 0.37 |
+| 2026-10-01 | `two_stage_v1.csv`: S1 + S2 classifier (full-val tuned params) | 0.456 | 0.37 |
+| — | `two_stage_v2.csv`: same S2, assemble_v2 (q×mean_p, lam .225) | 0.4564 (split-half .454/.459) | never uploaded (the LB .37 was v1's) |
 | 2026-10-07 | `s2_r34_ens2.csv`: **2-seed S1 ensemble (40 ep, seeds 0+1)** → proposals → S2 v2, assemble_v2 | **0.4616** (halves .4496/.4751 vs v2 .4410/.4739) | 0.37 |
 
 Overnight 2026-10-06/07 results (val PQ, fixed assemble_v2):
@@ -143,6 +144,25 @@ Remaining error anatomy (v2 on val):
 - **Direction:** spend GPU on variance reduction that preserves geometry (S1 seed/fold ensembles, like D4 TTA's +.016) and on candidate quality (E2, E4, E5, E7). Scorer/decoder research is near its ceiling.
 - **v2 PQ by annotator group ranges .42–.51.** The unknown test annotator mix likely explains part of the val→LB gap, and that part can't be fixed by modelling.
 
+## Ensemble mechanism and final strategy (2026-10-07, kaggle-planner)
+- **The 2-seed S1 ensemble gain is real:** +.0059 vs a single 40-ep seed (bootstrap P(>0) ≈ .99).
+  - About 55% comes from better mean_p in the keep score, about 45% from smoother proposals. Recall of candidates is unchanged.
+  - S2 does NOT need retraining for ensembles. Retraining on in-sample smooth proposals hurt (E1).
+- **More of the same is weak.** Member errors correlate .95–.97: a 3rd seed adds about +.002, 4–5 members about +.003–.0035.
+  1536 members are neutral/negative. A single 40-ep S1 alone gives no full-pipeline gain over 16 ep.
+- **Plan:**
+  - M1: last.pt vs best.pt check, which decides fixed-epoch training.
+  - M2: S1 folds 1–4 (13 GPU-h; OOF over 707 stems).
+  - M3: S2 on OOF proposals (adopt only if +.003 on both halves).
+  - M4: 3 all-data S1 seeds.
+  - M5: finals.
+- **Finals:**
+  - robust = best fold-0 ensemble + S2 v2;
+  - aggressive = mean of all S1 members, lam .225 with a guard (test kept/img within 5% of the robust pick, about 85% instance agreement).
+- **Kaggle notebook (required):** inference-only, needs a GPU (CPU ≈ 3 h per S1 member), about 30–45 min on T4 for about 11 members. Start building it early.
+- **LB is only a bug detector:** 2 decimals, paired SD .003–.005. Pick finals by val/OOF.
+- The external NVMe stalled E4 for about 3 h overnight (disk wait). `caffeinate -m` now prevents disk idle sleep.
+
 ## Experiment queue (scripts/exp/, logs in runs/*.out)
 | Id | What | Status |
 |---|---|---|
@@ -151,6 +171,7 @@ Remaining error anatomy (v2 on val):
 | SEED | v2 S2 recipe with seed 1 (`s2_r34_seed1`): run-to-run noise baseline + 2-seed q ensemble | queued (Q2) |
 | E2 | S1 40 epochs (`s1_r34_f0_e40`), then existing S2s scored on its proposals | queued (Q2) |
 | Q3 | A: Q2 CSVs + q-ensemble; B: 2-seed S1 ensemble; C: MaskQ S2; D: E4 1536 fine-tune | auto-queued (`runs/q3.out`) |
+| Q5 | M1 last-vs-best check, then M2 = S1 folds 1–4 (`s1_r34_f{k}_e40`) | auto after Q3 (`runs/q5.out`) |
 | P1 | S1 40 epochs, **seed 1** (`s1_r34_f0_e40_s1`), run in PARALLEL with Q2 (user freed the machine): with E2 gives a 2-model S1 probability ensemble | running (`runs/p1.out`) |
 | E4 | S1 fine-tune at 1536 from the best S1 | planned |
 | E5 | 5-fold S1 ensemble + OOF (lets lam be re-derived on 707 stems) | planned |
