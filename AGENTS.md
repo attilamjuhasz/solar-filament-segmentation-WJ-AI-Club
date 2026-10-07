@@ -12,6 +12,11 @@ Everything below runs DETACHED (nohup) and survives Claude exiting. Nothing need
   - C: MaskQ S2 (`s2_r34_mq`);
   - D: E4 1536 fine-tune (`s1_r34_f0_1536`).
   Every result gets a validated CSV in `submissions/` and an `== EVAL` val-PQ line in `runs/q3.out`.
+- **2026-10-07 08:30, running:**
+  - E4 (Q3 step D, 1536 fine-tune);
+  - **P2** (`runs/p2.out`, S1 seed 2, 40 ep, `s1_r34_f0_e40_s2`);
+  - **Q4** (`runs/q4.out`, auto after E4 and P2, `scripts/exp/q4_ensembles.sh`): ensembles `ens3_e40` (3 seeds), `ens2_1536` and `ens4_1536`, each scored with S2 v2 and the v2+seed1 q-ensemble, with CSVs.
+  - Best so far: `submissions/s2_r34_ens2.csv` (val .4616, LB .37).
 - **Picking the best:** grep `EVAL\|^(np.float` in runs/q2.out and runs/q3.out. Compare to v2 = **0.4564** (current best, LB 0.37). Adopt only if better on BOTH split halves: `analysis/score_agent/round2/base.py` / `ana.py` harness. Then update the ledger.
 - **7:00 AM Kaggle upload + text** was a session-only cron. If this Claude session died, do it manually in a new session: "read AGENTS.md, pick the best validated CSV, upload it, text me the score" (texting: `bash scripts/local/notify.sh "msg"`).
 - **Git:** commit locally on `zaid`. **Do NOT push** until the user says so.
