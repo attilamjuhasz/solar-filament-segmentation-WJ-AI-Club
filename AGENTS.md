@@ -53,6 +53,18 @@ Caches are in `data/cache/`. Rebuild everything with `bash scripts/run_pipeline.
 |---|---|---|---|
 | 2026-10-01 | `s1_only.csv`: S1 + tuned postprocess | 0.426 | 0.35 |
 | 2026-10-01 | `two_stage_v2.csv`: S1 + S2 classifier, q×mean_p, lam .225 | 0.456 (split-half .454/.459) | 0.37 |
+| 2026-10-07 | `s2_r34_ens2.csv`: **2-seed S1 ensemble (40 ep, seeds 0+1)** → proposals → S2 v2, assemble_v2 | **0.4616** (halves .4496/.4751 vs v2 .4410/.4739) | 0.37 |
+
+Overnight 2026-10-06/07 results (val PQ, fixed assemble_v2):
+- E3a (S2 q-avg) .4524 ✗
+- SEED (S2 seed 1) .4558 (≈ v2: the run-to-run noise floor is about ±.001)
+- q-ensemble v2+seed .4549 ✗
+- MaskQ S2 .4521 ✗
+- E2 S1-40ep: S1-only .4289 (vs .4262); S2 on its proposals .4557 / seed1 .4576
+- P1 S1-40ep seed 1: S1-only .4302
+- **2-seed S1 ensemble: S1-only .4317; with S2 v2 .4616 ✓ (best)**
+- E4 (1536 fine-tune) was still running at 08:15.
+- Lesson: S1 ensembling is the lever that works; S2/scorer variants are all within noise.
 
 Remaining error anatomy (v2 on val):
 - FN 584 in total:
