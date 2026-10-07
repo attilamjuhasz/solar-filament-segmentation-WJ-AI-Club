@@ -174,6 +174,7 @@ Remaining error anatomy (v2 on val):
 | E2 | S1 40 epochs (`s1_r34_f0_e40`), then existing S2s scored on its proposals | queued (Q2) |
 | Q3 | A: Q2 CSVs + q-ensemble; B: 2-seed S1 ensemble; C: MaskQ S2; D: E4 1536 fine-tune | auto-queued (`runs/q3.out`) |
 | Q5 | M1 last-vs-best check, then M2 = S1 folds 1–4 (`s1_r34_f{k}_e40`) | auto after Q3 (`runs/q5.out`) |
+| Q7 | FINAL aggressive CSV: mean of ALL S1 members (fold-0 seeds + folds 1–4 last + all-data seeds) → S2 v2 → `submissions/final_aggressive.csv`, guard vs `s2_r34_ens2.csv` (`scripts/exp/compare_subs.py`: kept ±5%, ≥85% instance match) | auto after Q6 (`runs/q7.out`) |
 | Q6 | M3: OOF S1 maps (`src/oof_probs.py` → `s1_oof`, per-fold CV) → S2 on OOF proposals (`s2_oof`) scored on ens2 val; M4: 3 all-data S1 seeds (`s1_r34_all_e40_s{0,1,2}`, test maps) | auto after Q5 (`runs/q6.out`) |
 | P1 | S1 40 epochs, **seed 1** (`s1_r34_f0_e40_s1`), run in PARALLEL with Q2 (user freed the machine): with E2 gives a 2-model S1 probability ensemble | running (`runs/p1.out`) |
 | E4 | S1 fine-tune at 1536 from the best S1 | planned |
