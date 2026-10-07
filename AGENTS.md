@@ -12,6 +12,7 @@ Everything below runs DETACHED (nohup) and survives Claude exiting. Nothing need
   - C: MaskQ S2 (`s2_r34_mq`);
   - D: E4 1536 fine-tune (`s1_r34_f0_1536`).
   Every result gets a validated CSV in `submissions/` and an `== EVAL` val-PQ line in `runs/q3.out`.
+- **2026-10-07 10:30:** two concurrent S1 trainings swapped heavily (8 GB swap full, ~5 MB/s in+out), which likely also caused the overnight E4 stall. **Run at most ONE S1 training at a time on this 16 GB M1.** P2 (3rd seed, ep 13) and Q4 were stopped (low value: +.002 predicted); partial run in `runs/_partial_s1_r34_f0_e40_s2_ep13`. Q5 (folds 1–4) continues alone.
 - **2026-10-07 08:30, running:**
   - E4 (Q3 step D, 1536 fine-tune);
   - **P2** (`runs/p2.out`, S1 seed 2, 40 ep, `s1_r34_f0_e40_s2`);
