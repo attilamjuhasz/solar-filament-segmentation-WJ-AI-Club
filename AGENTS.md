@@ -5,10 +5,9 @@ Competition facts and environment notes are in `CLAUDE.md`. This file covers the
 ## Status (2026-10-08 10:55): all queued work DONE, GPU idle
 **The two final picks are ready (both validated CSVs):**
 - **Robust:** `submissions/s2_r34_ens2.csv`: 2-seed fold-0 S1 ensemble + S2 v2. Val .4616 (halves .4496/.4751). LB .37.
-- **Aggressive:** `submissions/final_aggressive.csv`: 9-member S1 ensemble + S2 v2. Guard OK. Not uploaded yet.
+- **Aggressive:** `submissions/final_aggressive.csv`: 9-member S1 ensemble + S2 v2. Guard OK. **LB 0.38 (best)**.
 
 Pending, each needing the user's go-ahead:
-- upload `final_aggressive.csv` once as an LB sanity check;
 - build + publish the Kaggle inference notebook and weights dataset (required for eligibility);
 - `git push` of branch zaid.
 
@@ -51,7 +50,7 @@ Caches are in `data/cache/`. Rebuild everything with `bash scripts/run_pipeline.
 | 2026-10-01 | `s1_only.csv`: S1 + tuned postprocess | 0.426 | 0.35 |
 | 2026-10-01 | `two_stage_v1.csv`: S1 + S2 classifier (full-val tuned params) | 0.456 | 0.37 |
 | — | `two_stage_v2.csv`: same S2, assemble_v2 (q×mean_p, lam .225) | 0.4564 (split-half .454/.459) | never uploaded (the LB .37 was v1's) |
-| 2026-10-08 | `final_aggressive.csv`: **mean of 9 S1 members** (2 fold-0 seeds + folds 1–4 last.pt + 3 all-data seeds) → proposals → S2 v2, assemble_v2. Not val-measurable (members saw fold 0). Guard vs ens2: kept −1.1% (6.69 vs 6.77 per image), 96.3% instance match → OK | n/a (expected ≥ .4616-equivalent) | not uploaded |
+| 2026-10-08 | `final_aggressive.csv`: **mean of 9 S1 members** (2 fold-0 seeds + folds 1–4 last.pt + 3 all-data seeds) → proposals → S2 v2, assemble_v2. Not val-measurable (members saw fold 0). Guard vs ens2: kept −1.1% (6.69 vs 6.77 per image), 96.3% instance match → OK | n/a (expected ≥ .4616-equivalent) | **0.38** (best LB) |
 | 2026-10-07 | `s2_r34_ens2.csv`: **2-seed S1 ensemble (40 ep, seeds 0+1)** → proposals → S2 v2, assemble_v2 | **0.4616** (halves .4496/.4751 vs v2 .4410/.4739) | 0.37 |
 
 Overnight 2026-10-06/07 results (val PQ, fixed assemble_v2):
