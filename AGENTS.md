@@ -2,26 +2,17 @@
 
 Competition facts and environment notes are in `CLAUDE.md`. This file covers the agent team, the current pipeline state, and the improvement loop.
 
-## Status: running unattended (2026-10-06 ~19:40) — RESUME HERE
-Everything below runs DETACHED (nohup) and survives Claude exiting. Nothing needs Claude except judging results.
-- **Q2** (`runs/q2.out`): E3a (S2 q-avg) → SEED (S2 seed 1) → E2 (S1 40 ep seed 0, `s1_r34_f0_e40`) → existing S2s on E2 proposals.
-- **P1** (`runs/p1.out`, parallel): S1 40 ep seed 1 (`s1_r34_f0_e40_s1`).
-- **Q3** (`runs/q3.out`, auto-starts after Q2, then waits for P1), `scripts/exp/q3_after_q2_p1.sh`:
-  - A: CSVs for E3a/SEED + the v2+SEED q-ensemble;
-  - B: 2-seed S1 ensemble (`src/ens_probs.py`) → S2 v2;
-  - C: MaskQ S2 (`s2_r34_mq`);
-  - D: E4 1536 fine-tune (`s1_r34_f0_1536`).
-  Every result gets a validated CSV in `submissions/` and an `== EVAL` val-PQ line in `runs/q3.out`.
-- **2026-10-07 10:30:** two concurrent S1 trainings swapped heavily (8 GB swap full, ~5 MB/s in+out), which likely also caused the overnight E4 stall. **Run at most ONE S1 training at a time on this 16 GB M1.** P2 (3rd seed, ep 13) and Q4 were stopped (low value: +.002 predicted); partial run in `runs/_partial_s1_r34_f0_e40_s2_ep13`. Q5 (folds 1–4) continues alone.
-- **2026-10-07 08:30, running:**
-  - E4 (Q3 step D, 1536 fine-tune);
-  - **P2** (`runs/p2.out`, S1 seed 2, 40 ep, `s1_r34_f0_e40_s2`);
-  - **Q4** (`runs/q4.out`, auto after E4 and P2, `scripts/exp/q4_ensembles.sh`): ensembles `ens3_e40` (3 seeds), `ens2_1536` and `ens4_1536`, each scored with S2 v2 and the v2+seed1 q-ensemble, with CSVs.
-  - Best so far: `submissions/s2_r34_ens2.csv` (val .4616, LB .37).
-- **Picking the best:** grep `EVAL\|^(np.float` in runs/q2.out and runs/q3.out. Compare to v2 = **0.4564** (current best, LB 0.37). Adopt only if better on BOTH split halves: `analysis/score_agent/round2/base.py` / `ana.py` harness. Then update the ledger.
-- **7:00 AM Kaggle upload + text** was a session-only cron. If this Claude session died, do it manually in a new session: "read AGENTS.md, pick the best validated CSV, upload it, text me the score" (texting: `bash scripts/local/notify.sh "msg"`).
-- **Git:** commit locally on `zaid`. **Do NOT push** until the user says so.
-- The Mac is kept awake by `caffeinate` until about 09:30 on 2026-10-07.
+## Status (2026-10-08 10:55): all queued work DONE, GPU idle
+**The two final picks are ready (both validated CSVs):**
+- **Robust:** `submissions/s2_r34_ens2.csv`: 2-seed fold-0 S1 ensemble + S2 v2. Val .4616 (halves .4496/.4751). LB .37.
+- **Aggressive:** `submissions/final_aggressive.csv`: 9-member S1 ensemble + S2 v2. Guard OK. Not uploaded yet.
+
+Pending, each needing the user's go-ahead:
+- upload `final_aggressive.csv` once as an LB sanity check;
+- build + publish the Kaggle inference notebook and weights dataset (required for eligibility);
+- `git push` of branch zaid.
+
+5-fold S1 CV = .4163 pooled. S2 alternatives (E1, E3a, MaskQ, OOF-S2, q-ensembles) were all rejected, so keep S2 v2.
 
 ## The agent team (`.claude/agents/`)
 | Agent | Use it when | Writes code? |
@@ -60,6 +51,7 @@ Caches are in `data/cache/`. Rebuild everything with `bash scripts/run_pipeline.
 | 2026-10-01 | `s1_only.csv`: S1 + tuned postprocess | 0.426 | 0.35 |
 | 2026-10-01 | `two_stage_v1.csv`: S1 + S2 classifier (full-val tuned params) | 0.456 | 0.37 |
 | — | `two_stage_v2.csv`: same S2, assemble_v2 (q×mean_p, lam .225) | 0.4564 (split-half .454/.459) | never uploaded (the LB .37 was v1's) |
+| 2026-10-08 | `final_aggressive.csv`: **mean of 9 S1 members** (2 fold-0 seeds + folds 1–4 last.pt + 3 all-data seeds) → proposals → S2 v2, assemble_v2. Not val-measurable (members saw fold 0). Guard vs ens2: kept −1.1% (6.69 vs 6.77 per image), 96.3% instance match → OK | n/a (expected ≥ .4616-equivalent) | not uploaded |
 | 2026-10-07 | `s2_r34_ens2.csv`: **2-seed S1 ensemble (40 ep, seeds 0+1)** → proposals → S2 v2, assemble_v2 | **0.4616** (halves .4496/.4751 vs v2 .4410/.4739) | 0.37 |
 
 Overnight 2026-10-06/07 results (val PQ, fixed assemble_v2):
