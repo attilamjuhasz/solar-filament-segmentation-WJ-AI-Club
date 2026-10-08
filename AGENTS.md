@@ -70,6 +70,7 @@ Overnight 2026-10-06/07 results (val PQ, fixed assemble_v2):
 - E2 S1-40ep: S1-only .4289 (vs .4262); S2 on its proposals .4557 / seed1 .4576
 - P1 S1-40ep seed 1: S1-only .4302
 - **2-seed S1 ensemble: S1-only .4317; with S2 v2 .4616 ✓ (best)**
+- **5-fold CV (S1-only, last.pt, D4 TTA, fixed s1_postprocess):** folds 0–4 = .4260 / .4219 / .4167 / .4074 / .4093; **pooled over all 707 stems / 1154 readings = .4163**. Fold 0 (our val) is the easiest fold (+.010 vs the pooled mean), so fold-0 numbers run about +.01 optimistic, which is part of the val→LB gap. OOF maps are in `runs/s1_oof/probs_tta` (symlinks).
 - M1 fixed-epoch check: ens2 of last.pt .4597 vs ens2 of best.pt .4616 (−.002 = the best.pt selection inflation). best+last 4-model mix .4613 (no gain: same-seed checkpoints are near-identical). → Train folds/all-data for a fixed 40 epochs and use last.pt.
 - E4 (1536 fine-tune from E2): S1-only .4296; with S2 v2 .4568 (TP 1149 but FP 575). Neutral vs v2, below ens2. `submissions/s2_r34_1536.csv`.
 - Lesson: S1 ensembling is the lever that works; S2/scorer variants are all within noise.
