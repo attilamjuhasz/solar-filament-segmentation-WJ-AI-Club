@@ -1,0 +1,8 @@
+# data and caches are large and re-creatable; weights/ is NOT ignored (the rules require it in the repo)
+data/
+fake_data/
+cache/
+*.csv
+__pycache__/
+.ipynb_checkpoints/
+.venv/
