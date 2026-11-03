@@ -64,8 +64,10 @@ def main(argv=None):
 
     model = build_model(args.encoder, pretrained=not args.no_pretrained).to(device)
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
+        # OneCycleLR divides by zero unless warm-up lasts at least 2 steps, so short runs need a longer share.
+    total_steps = max(3, args.epochs * len(loader))
     sched = torch.optim.lr_scheduler.OneCycleLR(
-        opt, max_lr=args.lr, total_steps=args.epochs * len(loader), pct_start=0.1
+        opt, max_lr=args.lr, total_steps=total_steps, pct_start=max(0.1, 2 / total_steps)
     )
     use_amp = device.type == "cuda"
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
