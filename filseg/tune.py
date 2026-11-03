@@ -21,8 +21,8 @@ from .postprocess import PostParams
 from .validate import predict_val_probs, score_probs
 
 SEARCH_SPACE = {
-    "thr_high": [0.3, 0.4, 0.5, 0.6, 0.7],
-    "thr_low": [0.1, 0.2, 0.3, 0.4, 0.5],
+    "thr_high": [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+    "thr_low": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
     "min_area": [0, 25, 50, 100, 200],
     "merge_dist": [0, 6, 12, 20, 30, 45],
     "close_radius": [0, 2, 3, 5, 8],
