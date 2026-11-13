@@ -2,7 +2,11 @@ import os
 import zipfile
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.model_selection import train_test_split
 import tensorflow as tf
+from tensorflow.keras.utils import to_categorical
+import json
+import cv2
 
 # 1. Scan the current workspace directory to find any zip files
 current_dir = os.getcwd()
@@ -49,48 +53,87 @@ def print_tree(dir_path, level=0):
 print_tree(extract_dir)
 print("--------------------------------\n")
 
-
-# 4. Pure TF function to safely read the H-Alpha images
-def load_images_with_tf(actual_path, target_size=(256, 256)):
-    if not os.path.exists(actual_path):
-        return np.array()
-
-    images = []
-    file_names = sorted(
-        [
-            f
-            for f in os.listdir(actual_path)
-            if f.lower().endswith((".png", ".jpg", ".jpeg"))
-        ]
-    )
-
-    for img_name in file_names:
-        img_path = os.path.join(actual_path, img_name)
-        img_raw = tf.io.read_file(img_path)
-        img = tf.image.decode_image(
-            img_raw, channels=1, expand_animations=False
-        )
-        img = tf.image.resize(img, target_size)
-        images.append(img.numpy() / 255.0)
-
-    return np.array(images, dtype=np.float32)
-
-
-# Try to resolve paths dynamically based on common Kaggle paths
-base_path = extract_dir
-if "MAGFiLO_1.0_Kaggle_2026" in os.listdir(extract_dir):
-    base_path = os.path.join(extract_dir, "MAGFiLO_1.0_Kaggle_2026")
-
-train_img_dir = os.path.join(base_path, "train", "train_images")
+base_path = os.path.join(extract_dir, "MAGFiLO_1.0_Kaggle_2026")
+train_dir = os.path.join(base_path, "train")
+train_img_dir = os.path.join(train_dir, "train_images")
 test_img_dir = os.path.join(base_path, "test", "test_images")
 
-# Fallback check if folders are named flatly
-if not os.path.exists(train_img_dir):
-    train_img_dir = os.path.join(base_path, "train_images")
-    test_img_dir = os.path.join(base_path, "test_images")
+# Automatically find the .json file inside train/
+json_files = [f for f in os.listdir(train_dir) if f.endswith(".json")]
+if not json_files:
+    raise FileNotFoundError(f"No .json annotation file found in {train_dir}")
 
-X_train = load_images_with_tf(train_img_dir)
-X_test = load_images_with_tf(test_img_dir)
+ann_json_path = os.path.join(train_dir, json_files[0])
+print(f"Found annotation file: {ann_json_path}")
+TARGET_SIZE = (256,256)
+with open(ann_json_path, "r") as f:
+    coco_data = json.load(f)
 
-print(f"Final X_train array shape: {X_train.shape}")
-print(f"Final X_test array shape: {X_test.shape}")
+images_info = {img["id"]: img for img in coco_data["images"]}
+anns_by_img = {img_id: [] for img_id in images_info}
+for ann in coco_data["annotations"]:
+    anns_by_img[ann["image_id"]].append(ann)
+X_full = []
+y_full = []
+sorted_img_infos = sorted(coco_data["images"], key=lambda x: x["file_name"])
+
+
+for img_info in sorted_img_infos:
+    img_id = img_info["id"]
+    file_name = img_info['file_name']
+    orig_h, orig_w = img_info["height"], img_info["width"]
+    img_path = os.path.join(train_img_dir, file_name)
+    img_raw = tf.io.read_file(img_path)
+    img = tf.image.decode_image(
+        img_raw, channels=1, expand_animations=False
+                        )
+    img = tf.image.resize(img, TARGET_SIZE)
+    img = (tf.cast(img, tf.float32) / 255.0).numpy()
+
+    mask = np.zeros((orig_h, orig_w), dtype=np.uint8)
+    for ann in anns_by_img.get(img_id, []):
+        seg = ann.get("segmentation", [])
+        if isinstance(seg, list):
+            for poly in seg:
+                pts = np.array(poly, dtype=np.int32).reshape((-1, 2))
+                cv2.fillPoly(mask, [pts], color=1)
+    mask_resized = cv2.resize(mask, TARGET_SIZE, interpolation=cv2.INTER_NEAREST)
+    mask_resized = np.expand_dims(mask_resized, axis=-1).astype(np.float32)
+
+    X_full.append(img)
+    y_full.append(mask_resized)
+
+X_full = np.array(X_full, dtype=np.float32)
+y_full = np.array(X_full, dtype=np.float32)
+
+x_test = []
+for f_name in sorted(os.listdir(test_img_dir)):
+    if f_name.lower().endswith((".png",".jpg",".jpeg")):
+        img_raw = tf.io.read_file(os.path.join(test_img_dir, f_name))
+        img = tf.image.decode_image(img_raw, channels=1, expand_animations=False)
+        img = tf.image.resize(img, TARGET_SIZE, method="bilinear")
+        x_test.append((tf.cast(img, tf.float32) / 255.0).numpy())
+x_test = np.array(x_test, dtype=np.float32)
+
+print(f"Final X_train array shape: {X_full.shape}, Y_train shape{y_full.shape}")
+print(f"Final X_test array shape: {X_full.shape}")
+
+rng = np.random.default_rng(seed=42)
+indices = rng.permutation(len(X_full))
+split_idx = int(len(X_full) * 0.8)
+
+X_train, y_train = X_full[indices[:split_idx]], y_full[indices[:split_idx]]
+X_val, y_val = X_full[indices[split_idx:]], y_full[indices[split_idx:]]
+
+fig, axes = plt.subplots(2,5, figsize=(12,5))
+for i in range(5):
+    axes[0, i].imshow(X_train[i].squeeze(), cmap="gray")
+    axes[0, i].set_title("H-Alpha Image")
+    axes[0, i].axis("off")
+
+    axes[1, i].imshow(y_train[i].squeeze(), cmap="gray")
+    axes[1, i].set_title("Filament Mask")
+    axes[1, i].axis("off")
+plt.tight_layout()
+plt.savefig("preview.png", dpi=150)
+
