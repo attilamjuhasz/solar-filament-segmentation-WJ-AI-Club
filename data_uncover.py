@@ -136,4 +136,3 @@ for i in range(5):
     axes[1, i].axis("off")
 plt.tight_layout()
 plt.savefig("preview.png", dpi=150)
-
