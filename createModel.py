@@ -1,22 +1,41 @@
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
-from data_uncover import X_test, X_train
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, UpSampling2D, Input, concatenate, Conv2DTranspose
+from tensorflow.keras.models import Model
 
-model = Sequential()
-print(X_test.shape, X_train.shape)
+def conv_block(x, n_filters):
+    x = Conv2D(n_filters, (3,3), padding='same', activation='relu')(x)
+    x = Conv2D(n_filters, (3,3), padding='same', activation='relu')(x)
+    return x
 
-model.add(Conv2D(32,(3,3), activation="relu", input_shape=(32,32,3)))
-model.add(MaxPooling2D((2,2)))
+def encoder_blocks(x, n_filters):
+    x = conv_block(x,n_filters)
+    p = MaxPooling2D((2,2))(x)
+    return x,p
 
-model.add(Conv2D(64,(3,3), activation="relu"))
-model.add(MaxPooling2D((2,2)))
+def decoder_block(x, p, n_filters):
+    x = Conv2DTranspose(n_filters, (2,2), strides=(2,2), padding='same')(x)
+    x = concatenate([x, p])
+    x = conv_block(x,n_filters)
+    return x
 
-model.add(Conv2D(128,(3,3), activation="relu"))
-model.add(MaxPooling2D((2,2)))
+def unet_model(n_classes, img_height, img_width, img_channels):
+    inputs = Input((img_height, img_width, img_channels))
 
-model.add(Flatten())
-model.add(Dense(128, activation='relu'))
-model.add(Dropout(0.5))
-model.add(Dense(10, activation='softmax'))
+    c1, p1 = encoder_blocks(inputs, n_filters=16)
+    c2, p2 = encoder_blocks(p1, n_filters=32)
+    c3, p3 = encoder_blocks(p2, n_filters=64)
+    c4, p4 = encoder_blocks(p3, n_filters=128)
 
-model.compile(optimizer="adam", loss="categorical_crossentropy",metrics=['accuracy'])
+    bridge = conv_block(p4, n_filters=256)
+
+    u4 = decoder_block(bridge, c4, n_filters=128)
+    u3 = decoder_block(u4, c3, n_filters=64)
+    u2 = decoder_block(u3, c2, n_filters=32)
+    u1 = decoder_block(u2, c1, n_filters=16)
+
+    outputs = Conv2D(1, (1,1), activation='sigmoid')(u1)
+    model = Model(inputs=[inputs], outputs=[outputs])
+    return model
+IMG_HEIGHT, IMG_WIDTH = 256, 256
+
+model = unet_model(n_classes=1, img_height=IMG_HEIGHT, img_width=IMG_WIDTH, img_channels=1)
+model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
